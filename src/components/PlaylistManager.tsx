@@ -1,0 +1,194 @@
+import React, { useState } from 'react';
+import { Play, Trash2, Plus, Video, Clock, Check } from 'lucide-react';
+import { Video as VideoType } from '../types';
+
+interface Playlist {
+  id: string;
+  name: string;
+  videos: VideoType[];
+  createdAt: string;
+  watchedVideos?: Set<string>;
+}
+
+interface PlaylistManagerProps {
+  playlists: Playlist[];
+  onPlayPlaylist: (playlist: Playlist) => void;
+  onRemoveFromPlaylist: (playlistId: string, videoId: string) => void;
+  onDeletePlaylist: (playlistId: string) => void;
+  onAddVideoToPlaylist: (video: VideoType | null) => void;
+  onCreatePlaylist: (name: string, videos?: VideoType[]) => void;
+}
+
+export function PlaylistManager({
+  playlists,
+  onPlayPlaylist,
+  onRemoveFromPlaylist,
+  onDeletePlaylist,
+  onAddVideoToPlaylist,
+  onCreatePlaylist
+}: PlaylistManagerProps) {
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState('');
+
+  const handleCreatePlaylist = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPlaylistName.trim()) {
+      onCreatePlaylist(newPlaylistName.trim());
+      setNewPlaylistName('');
+      setShowCreateForm(false);
+    }
+  };
+
+  const handlePlayVideo = (video: VideoType) => {
+    const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+    window.open(videoUrl, '_blank');
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white flex items-center">
+          <Play className="w-8 h-8 mr-3 text-purple-400" />
+          Oynatma Listelerim ({playlists.length})
+        </h2>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Yeni Liste</span>
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
+          <form onSubmit={handleCreatePlaylist} className="flex gap-2">
+            <input
+              type="text"
+              value={newPlaylistName}
+              onChange={(e) => setNewPlaylistName(e.target.value)}
+              placeholder="Liste adı..."
+              className="flex-1 bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors"
+            >
+              Oluştur
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCreateForm(false);
+                setNewPlaylistName('');
+              }}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors"
+            >
+              İptal
+            </button>
+          </form>
+        </div>
+      )}
+
+      {playlists.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p className="text-lg">Henüz oynatma listeniz yok</p>
+            <p className="text-sm mt-2">Videolara tıklayarak oynatma listesi oluşturabilirsiniz</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          {playlists.map((playlist) => (
+            <div key={playlist.id} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <Play className="w-6 h-6 text-purple-400" />
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">{playlist.name}</h3>
+                    <p className="text-gray-400 text-sm">
+                      {playlist.videos.length} video • {new Date(playlist.createdAt).toLocaleDateString('tr-TR')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => onPlayPlaylist(playlist)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Oynat</span>
+                  </button>
+                  <button
+                    onClick={() => onDeletePlaylist(playlist.id)}
+                    className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {playlist.videos.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {playlist.videos.slice(0, 8).map((video) => {
+                    const isWatched = playlist.watchedVideos?.has(video.id.videoId || video.id);
+                    return (
+                      <div
+                        key={video.id.videoId || video.id}
+                        className="group relative bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors cursor-pointer"
+                        onClick={() => handlePlayVideo(video)}
+                      >
+                        <div className="relative">
+                          <img
+                            src={video.snippet.thumbnails.medium.url}
+                            alt={video.snippet.title}
+                            className="w-full h-24 object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                            <Play className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          {isWatched && (
+                            <div className="absolute top-2 right-2 bg-green-600 rounded-full p-1">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <h4 className="text-white text-sm font-medium line-clamp-2 mb-1">
+                            {video.snippet.title}
+                          </h4>
+                          <p className="text-gray-400 text-xs">
+                            {video.snippet.channelTitle}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveFromPlaylist(playlist.id, video.id.videoId || video.id);
+                          }}
+                          className="absolute top-2 left-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {playlist.videos.length > 8 && (
+                    <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-center">
+                      <div className="text-center text-gray-400">
+                        <Video className="w-6 h-6 mx-auto mb-2" />
+                        <p className="text-sm">+{playlist.videos.length - 8} video daha</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
