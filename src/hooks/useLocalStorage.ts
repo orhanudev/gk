@@ -10,9 +10,17 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         if (Array.isArray(parsed)) {
           return parsed.map((playlist: any) => ({
             ...playlist,
+            name: typeof playlist.name === 'string' ? playlist.name : 'Unnamed Playlist',
             watchedVideos: new Set(playlist.watchedVideos || []),
             currentVideoIndex: playlist.currentVideoIndex || 0
           }));
+        }
+        // Handle single playlist object
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return {
+            ...parsed,
+            name: typeof parsed.name === 'string' ? parsed.name : 'Unnamed Playlist'
+          };
         }
         return parsed;
       }
