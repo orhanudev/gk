@@ -1,8 +1,8 @@
 // Utility functions for search operations
 
 export function normalizeSearchText(text: string): string {
-  // Convert to lowercase first
-  let normalized = text.toLowerCase();
+  // Convert to lowercase and trim whitespace
+  let normalized = text.toLowerCase().trim();
   
   // Turkish to English character mapping
   const turkishToEnglish: { [key: string]: string } = {
@@ -12,11 +12,23 @@ export function normalizeSearchText(text: string): string {
     'ö': 'o',
     'ş': 's',
     'ü': 'u',
+    'Ç': 'c',
+    'Ğ': 'g',
+    'I': 'i', // Turkish capital I
+    'İ': 'i', // Turkish dotted capital I
+    'Ö': 'o',
+    'Ş': 's',
+    'Ü': 'u',
     'â': 'a',
     'î': 'i',
     'û': 'u',
     'ê': 'e',
-    'ô': 'o'
+    'ô': 'o',
+    'Â': 'a',
+    'Î': 'i',
+    'Û': 'u',
+    'Ê': 'e',
+    'Ô': 'o'
   };
   
   // Replace Turkish characters with English equivalents
