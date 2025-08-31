@@ -10,6 +10,8 @@ interface VideoCardProps {
   isWatched?: boolean;
   onToggleWatched?: (video: Video) => void;
   isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (videoId: string) => void;
 }
 
 export function VideoCard({ 
@@ -90,7 +92,7 @@ export function VideoCard({
         }`}>
           {isSelectionMode ? (
             <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-              selectedVideos?.has(video.id.videoId || String(video.id))
+              isSelected
                 ? 'bg-purple-600 border-purple-600 text-white'
                 : 'bg-gray-800 bg-opacity-80 border-gray-400 text-transparent'
             }`}>
