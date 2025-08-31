@@ -36,6 +36,9 @@ const shareVideo = async (video: Video) => {
 };
 
 export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: PlaylistPlayerProps) {
+  // Early return BEFORE any hooks to avoid Rules of Hooks violation
+  if (!playlist || !playlist.videos.length) return null;
+
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -80,11 +83,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     }
   }, [playlist, onUpdatePlaylist]);
 
-  // Early return after all hooks
-  if (!playlist || !playlist.videos.length) return null;
-
   const currentVideo = playlist.videos[currentVideoIndex];
-  if (!currentVideo) return null;
   
   const currentVideoId = getVideoId(currentVideo);
   
