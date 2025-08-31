@@ -37,6 +37,29 @@ async function loadJsonFile(path: string): Promise<any[]> {
   }
 }
 
+async function testFileExists(path: string): Promise<boolean> {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) return false;
+    
+    const text = await response.text();
+    // Make sure it's not HTML
+    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+      return false;
+    }
+    
+    // Try to parse as JSON to verify it's valid
+    try {
+      JSON.parse(text);
+      return true;
+    } catch {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+}
+
 async function loadManifest(): Promise<string[]> {
   try {
     console.log('📋 Loading content manifest...');
@@ -49,16 +72,77 @@ async function loadManifest(): Promise<string[]> {
     
     const manifest = await response.json();
     if (!Array.isArray(manifest)) {
-      console.error('❌ Invalid manifest format - should be array of file paths');
+      console.error('❌ Invalid manifest format - should be array of paths');
       return [];
     }
     
-    console.log(`✅ Loaded manifest with ${manifest.length} files`);
+    console.log(`✅ Loaded manifest with ${manifest.length} entries`);
     return manifest;
   } catch (error) {
     console.error('❌ Error loading manifest:', error);
     return [];
   }
+}
+
+async function discoverFilesInFolder(folderPath: string): Promise<string[]> {
+  const discoveredFiles: string[] = [];
+  
+  // Common JSON file names to try
+  const commonFileNames = [
+    'index.json',
+    'content.json', 
+    'videos.json',
+    'list.json',
+    'main.json',
+    'data.json'
+  ];
+  
+  console.log(`🔍 Discovering files in folder: ${folderPath}`);
+  
+  for (const fileName of commonFileNames) {
+    const filePath = `${folderPath}/${fileName}`;
+    const exists = await testFileExists(filePath);
+    
+    if (exists) {
+      console.log(`✅ Found file: ${filePath}`);
+      discoveredFiles.push(filePath);
+    }
+  }
+  
+  return discoveredFiles;
+}
+
+async function expandManifestEntries(manifestEntries: string[]): Promise<string[]> {
+  const allFiles: string[] = [];
+  
+  console.log('🔄 Expanding manifest entries...');
+  
+  for (const entry of manifestEntries) {
+    console.log(`Processing manifest entry: ${entry}`);
+    
+    if (entry.endsWith('.json')) {
+      // This is a direct file path
+      const exists = await testFileExists(entry);
+      if (exists) {
+        console.log(`✅ Direct file exists: ${entry}`);
+        allFiles.push(entry);
+      } else {
+        console.log(`❌ Direct file not found: ${entry}`);
+      }
+    } else {
+      // This is a folder path - discover JSON files in it
+      console.log(`📁 Folder entry detected: ${entry}`);
+      const folderFiles = await discoverFilesInFolder(entry);
+      allFiles.push(...folderFiles);
+      
+      if (folderFiles.length === 0) {
+        console.log(`📂 Empty folder or no JSON files found in: ${entry}`);
+      }
+    }
+  }
+  
+  console.log(`📊 Expanded to ${allFiles.length} total files:`, allFiles);
+  return allFiles;
 }
 
 function buildGroupStructureFromPaths(filePaths: string[]): Group[] {
@@ -121,7 +205,6 @@ function buildGroupStructureFromPaths(filePaths: string[]): Group[] {
     });
     
     // Create the final subgroup for the JSON file
-    const finalPath = currentPath + (subfolderParts.length > 0 ? `/${fileName}` : `/${fileName}`);
     let fileSubgroup = currentSubgroups.find(sg => sg.name === fileName);
     if (!fileSubgroup) {
       fileSubgroup = {
@@ -133,7 +216,7 @@ function buildGroupStructureFromPaths(filePaths: string[]): Group[] {
         _filePath: filePath // Temporary property to track which file to load
       };
       currentSubgroups.push(fileSubgroup);
-      console.log(`Created file subgroup: ${finalPath}`);
+      console.log(`Created file subgroup for: ${fileName}`);
     }
   });
   
@@ -209,10 +292,20 @@ export async function loadAllContent(): Promise<Group[]> {
     console.log('🚀 Starting manifest-based content loading...');
     
     // Load the manifest file
-    const filePaths = await loadManifest();
+    const manifestEntries = await loadManifest();
+    
+    if (manifestEntries.length === 0) {
+      console.log('❌ No entries found in manifest');
+      return [];
+    }
+    
+    console.log('📋 Manifest entries:', manifestEntries);
+    
+    // Expand manifest entries (handle both files and folders)
+    const filePaths = await expandManifestEntries(manifestEntries);
     
     if (filePaths.length === 0) {
-      console.log('❌ No files found in manifest');
+      console.log('❌ No files found after expanding manifest entries');
       return [];
     }
     
@@ -222,7 +315,7 @@ export async function loadAllContent(): Promise<Group[]> {
     const groups = buildGroupStructureFromPaths(filePaths);
     
     if (groups.length === 0) {
-      console.log('❌ No groups could be built from manifest');
+      console.log('❌ No groups could be built from file paths');
       return [];
     }
     
