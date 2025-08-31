@@ -34,7 +34,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
         onUpdatePlaylist(updatedPlaylist);
       }
     }
-  }, [playlist]);
+  }, [playlist, onUpdatePlaylist]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -135,26 +135,9 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     onUpdatePlaylist(updatedPlaylist);
   };
 
-  const handleVideoEnd = () => {
-    // Mark current video as watched
-    const newWatchedVideos = new Set(watchedVideos);
-    newWatchedVideos.add(currentVideoId);
-    setWatchedVideos(newWatchedVideos);
-
-    // Update playlist with watched status
-    const updatedPlaylist = {
-      ...playlist,
-      watchedVideos: newWatchedVideos,
-      currentVideoIndex
-    };
-    onUpdatePlaylist(updatedPlaylist);
-
-    // Auto-advance to next video
-    if (currentVideoIndex < playlist.videos.length - 1) {
-      handleNext();
-    } else {
-      // Playlist finished
-    }
+  const handleClose = () => {
+    console.log('Closing playlist player');
+    onClose();
   };
 
   return (
@@ -175,8 +158,9 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            onClick={handleClose}
+            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+            title="Kapat"
           >
             <X className="w-6 h-6" />
           </button>
@@ -229,27 +213,8 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                 onClick={() => handleVideoSelect(index)}
               >
                 <div className="flex items-start space-x-3">
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={video.snippet.thumbnails?.high?.url || 
-                           video.snippet.thumbnails?.medium?.url || 
-                           video.snippet.thumbnails?.default?.url ||
-                           `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`}
-                      alt={video.snippet.title}
-                      className="w-16 h-12 object-cover rounded"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/120x90/374151/9CA3AF?text=Video';
-                      }}
-                    />
-                    {isCurrent && (
-                      <div className="absolute inset-0 bg-purple-600 bg-opacity-50 flex items-center justify-center rounded">
-                        <Play className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1 rounded">
-                      {index + 1}
-                    </div>
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    {index + 1}
                   </div>
                   
                   <div className="flex-1 min-w-0">
@@ -307,14 +272,13 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                 <Maximize2 className="w-5 h-5" />
               )}
             </button>
-            {!isFullscreen && (
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            )}
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+              title="Kapat"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
