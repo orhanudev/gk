@@ -35,6 +35,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<'videos' | 'playlists' | 'search' | 'videolink'>('videos');
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedVideos, setSelectedVideos] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const [playlistCreationType, setPlaylistCreationType] = useState<'all' | 'selected'>('all');
 
   // Check for mobile screen size
   React.useEffect(() => {
@@ -108,6 +112,38 @@ export default function App() {
     }
   };
 
+  const handleCreatePlaylistFromVideos = (name: string) => {
+    if (playlistCreationType === 'all') {
+      createPlaylist(name, filteredVideos);
+    } else {
+      const selectedVideoObjects = filteredVideos.filter(video => 
+        selectedVideos.has(video.id.videoId || video.id)
+      );
+      createPlaylist(name, selectedVideoObjects);
+    }
+    setShowCreatePlaylistModal(false);
+    setSelectedVideos(new Set());
+    setIsSelectionMode(false);
+  };
+
+  const toggleVideoSelection = (videoId: string) => {
+    const newSelected = new Set(selectedVideos);
+    if (newSelected.has(videoId)) {
+      newSelected.delete(videoId);
+    } else {
+      newSelected.add(videoId);
+    }
+    setSelectedVideos(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedVideos.size === filteredVideos.length) {
+      setSelectedVideos(new Set());
+    } else {
+      const allVideoIds = filteredVideos.map(video => video.id.videoId || video.id);
+      setSelectedVideos(new Set(allVideoIds));
+    }
+  };
   const handleAddToPlaylist = (playlistId: string, video: Video) => {
     addToPlaylist(playlistId, video);
   };
@@ -268,6 +304,72 @@ export default function App() {
             <>
               <Breadcrumb path={currentPath} onNavigate={handleNavigate} />
               
+              {/* Playlist Creation Buttons */}
+              {currentVideos.length > 0 && (
+                <div className="mb-6 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setPlaylistCreationType('all');
+                        setShowCreatePlaylistModal(true);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                    >
+                      <List className="w-4 h-4" />
+                      <span>Tüm Videoları Liste Yap ({filteredVideos.length})</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setIsSelectionMode(!isSelectionMode);
+                        setSelectedVideos(new Set());
+                      }}
+                      className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm ${
+                        isSelectionMode
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-600 hover:bg-gray-700 text-white'
+                      }`}
+                    >
+                      <VideoIcon className="w-4 h-4" />
+                      <span>{isSelectionMode ? 'Seçimi İptal Et' : 'Video Seç'}</span>
+                    </button>
+                    
+                    {isSelectionMode && (
+                      <>
+                        <button
+                          onClick={handleSelectAll}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          {selectedVideos.size === filteredVideos.length ? 'Hiçbirini Seçme' : 'Hepsini Seç'}
+                        </button>
+                        
+                        {selectedVideos.size > 0 && (
+                          <button
+                            onClick={() => {
+                              setPlaylistCreationType('selected');
+                              setShowCreatePlaylistModal(true);
+                            }}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Seçilenleri Liste Yap ({selectedVideos.size})</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  
+                  {isSelectionMode && (
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                      <p className="text-blue-200 text-sm">
+                        <strong>Seçim Modu:</strong> Oynatma listesi oluşturmak için videoları seçin. 
+                        {selectedVideos.size > 0 && ` ${selectedVideos.size} video seçildi.`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               {/* Show subgroups if available */}
               {currentSubgroups.length > 0 && (
                 <SubgroupGrid
@@ -301,6 +403,9 @@ export default function App() {
                     videos={filteredVideos}
                     onPlayVideo={setCurrentVideo}
                     onAddToPlaylist={setPlaylistModalVideo}
+                    isSelectionMode={isSelectionMode}
+                    selectedVideos={selectedVideos}
+                    onToggleSelection={toggleVideoSelection}
                   />
                 </div>
               )}
@@ -342,6 +447,80 @@ export default function App() {
         onAddToPlaylist={handleAddToPlaylist}
         onDeletePlaylist={handleDeletePlaylist}
       />
+
+      {/* Create Playlist Modal */}
+      {showCreatePlaylistModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-white text-lg font-semibold">
+                {playlistCreationType === 'all' 
+                  ? `Tüm Videoları Liste Yap (${filteredVideos.length})` 
+                  : `Seçili Videoları Liste Yap (${selectedVideos.size})`
+                }
+              </h3>
+              <button
+                onClick={() => setShowCreatePlaylistModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                const name = formData.get('playlistName') as string;
+                if (name.trim()) {
+                  handleCreatePlaylistFromVideos(name.trim());
+                }
+              }}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="playlistName" className="block text-gray-300 text-sm font-medium mb-2">
+                      Oynatma Listesi Adı
+                    </label>
+                    <input
+                      id="playlistName"
+                      name="playlistName"
+                      type="text"
+                      placeholder="Liste adı girin..."
+                      className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
+                      autoFocus
+                      required
+                    />
+                  </div>
+                  
+                  <div className="bg-gray-700 p-3 rounded-lg">
+                    <p className="text-gray-300 text-sm">
+                      {playlistCreationType === 'all' 
+                        ? `${filteredVideos.length} video bu listeye eklenecek`
+                        : `${selectedVideos.size} seçili video bu listeye eklenecek`
+                      }
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCreatePlaylistModal(false)}
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors"
+                    >
+                      Oluştur
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

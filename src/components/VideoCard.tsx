@@ -9,9 +9,17 @@ interface VideoCardProps {
   onAddToPlaylist: (video: Video) => void;
   isWatched?: boolean;
   onToggleWatched?: (video: Video) => void;
+  isSelectionMode?: boolean;
 }
 
-export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = false, onToggleWatched }: VideoCardProps) {
+export function VideoCard({ 
+  video, 
+  onPlayVideo, 
+  onAddToPlaylist, 
+  isWatched = false, 
+  onToggleWatched,
+  isSelectionMode = false
+}: VideoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const thumbnailUrl = video.snippet.thumbnails?.high?.url || 
@@ -34,10 +42,14 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = fal
 
   return (
     <div 
-      className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+      className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 group ${
+        isSelectionMode 
+          ? 'cursor-default' 
+          : 'hover:shadow-xl transform hover:scale-105 cursor-pointer'
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onPlayVideo(video)}
+      onClick={isSelectionMode ? undefined : () => onPlayVideo(video)}
     >
       <div className="relative">
         <img
@@ -67,7 +79,7 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = fal
         
         {/* Play Button Overlay */}
         <div className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300 ${
-          isHovered ? 'opacity-100' : 'opacity-0'
+          isHovered && !isSelectionMode ? 'opacity-100' : 'opacity-0'
         }`}>
           <button
             onClick={(e) => {
@@ -97,9 +109,16 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = fal
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onPlayVideo(video);
+              if (!isSelectionMode) {
+                onPlayVideo(video);
+              }
             }}
-            className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors text-sm"
+            className={`flex items-center space-x-2 transition-colors text-sm ${
+              isSelectionMode 
+                ? 'text-gray-500 cursor-not-allowed' 
+                : 'text-purple-400 hover:text-purple-300'
+            }`}
+            disabled={isSelectionMode}
           >
             <Play className="w-4 h-4" />
             <span>İzle</span>
@@ -108,12 +127,17 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = fal
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (typeof onAddToPlaylist === 'function') {
+              if (typeof onAddToPlaylist === 'function' && !isSelectionMode) {
                 onAddToPlaylist(video);
               }
             }}
-            className="text-gray-400 hover:text-white transition-colors"
+            className={`transition-colors ${
+              isSelectionMode 
+                ? 'text-gray-600 cursor-not-allowed' 
+                : 'text-gray-400 hover:text-white'
+            }`}
             title="Listeye ekle"
+            disabled={isSelectionMode}
           >
             <List className="w-4 h-4" />
           </button>
@@ -122,14 +146,20 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = fal
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onToggleWatched(video);
+                if (!isSelectionMode) {
+                  onToggleWatched(video);
+                }
               }}
               className={`transition-colors ${
+                isSelectionMode 
+                  ? 'text-gray-600 cursor-not-allowed'
+                  : 
                 isWatched 
                   ? 'text-green-400 hover:text-green-300' 
                   : 'text-gray-400 hover:text-white'
               }`}
               title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+              disabled={isSelectionMode}
             >
               <Check className="w-4 h-4" />
             </button>
