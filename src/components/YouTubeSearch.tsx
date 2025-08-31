@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { List, Search, Play, Folder, Video as VideoIcon } from 'lucide-react';
+import { List, Search, Play, Folder, Video as VideoIcon, AlertCircle } from 'lucide-react';
 import { useYouTubeSearch } from '../hooks/useYouTubeSearch';
 import { VideoGrid } from './VideoGrid';
 import { Video } from '../types';
@@ -10,11 +10,12 @@ interface YouTubeSearchProps {
 
 export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { videos: searchResults, loading, error, searchVideos } = useYouTubeSearch();
+  const { searchResults, loading, error, searchVideos } = useYouTubeSearch();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      console.log('Starting search for:', searchQuery);
       searchVideos(searchQuery);
     }
   };
@@ -59,7 +60,24 @@ export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
 
       {error && (
         <div className="max-w-2xl mx-auto bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-          <p className="text-red-400 text-center">{error}</p>
+          <div className="flex items-start">
+            <AlertCircle className="w-5 h-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-red-400">{error}</p>
+              <p className="text-red-300 text-sm mt-1">
+                API anahtarını kontrol edin ve tekrar deneyin.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center py-12">
+          <div className="text-gray-400">
+            <Search className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+            <p className="text-lg">"{searchQuery}" aranıyor...</p>
+          </div>
         </div>
       )}
 
@@ -79,7 +97,7 @@ export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
         </div>
       )}
 
-      {searchResults && searchResults.length === 0 && searchQuery && !loading && (
+      {searchResults && searchResults.length === 0 && searchQuery && !loading && !error && (
         <div className="text-center py-12">
           <Search className="w-16 h-16 mx-auto mb-4 text-gray-600" />
           <p className="text-gray-400 text-lg">"{searchQuery}" için sonuç bulunamadı</p>
@@ -87,7 +105,7 @@ export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
         </div>
       )}
 
-      {!searchResults && !loading && (
+      {!searchResults && !loading && !searchQuery && (
         <div className="text-center py-12">
           <Search className="w-16 h-16 mx-auto mb-4 text-gray-600" />
           <p className="text-gray-400 text-lg">YouTube'da video aramak için yukarıdaki arama kutusunu kullanın</p>
