@@ -265,6 +265,7 @@ export default function App() {
           {currentView === 'search' ? (
             <YouTubeSearch
               onAddToPlaylist={setPlaylistModalVideo}
+              onPlayVideo={setCurrentVideo}
             />
           ) : currentView === 'videolink' ? (
             <VideoLinkInput

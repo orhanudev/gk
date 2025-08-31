@@ -6,9 +6,10 @@ import { Video } from '../types';
 
 interface YouTubeSearchProps {
   onAddToPlaylist: (video: Video) => void;
+  onPlayVideo: (video: Video) => void;
 }
 
-export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
+export function YouTubeSearch({ onAddToPlaylist, onPlayVideo }: YouTubeSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { searchResults, loading, error, searchVideos } = useYouTubeSearch();
 
@@ -18,12 +19,6 @@ export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
       console.log('Starting search for:', searchQuery);
       searchVideos(searchQuery);
     }
-  };
-
-  const handlePlayVideo = (video: Video) => {
-    // Open video in new tab
-    const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
-    window.open(videoUrl, '_blank');
   };
 
   return (
@@ -91,7 +86,7 @@ export function YouTubeSearch({ onAddToPlaylist }: YouTubeSearchProps) {
           </div>
           <VideoGrid
             videos={searchResults}
-            onPlayVideo={handlePlayVideo}
+            onPlayVideo={onPlayVideo}
             onAddToPlaylist={onAddToPlaylist}
           />
         </div>
