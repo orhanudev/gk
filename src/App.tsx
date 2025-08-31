@@ -181,6 +181,8 @@ export default function App() {
             isPlaylistsActive={currentView === 'playlists'}
             onShowVideoLink={() => setCurrentView('videolink')}
             isVideoLinkActive={currentView === 'videolink'}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
             onAddToPlaylist={setPlaylistModalVideo}
             onAddToPlaylistModal={setPlaylistModalVideo}
             isMobile={isMobile}

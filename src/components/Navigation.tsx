@@ -12,6 +12,8 @@ interface NavigationProps {
   isPlaylistsActive: boolean;
   onShowVideoLink: () => void;
   isVideoLinkActive: boolean;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
   onClose?: () => void;
   isMobile?: boolean;
 }
@@ -26,6 +28,8 @@ export function Navigation({
   isPlaylistsActive,
   onShowVideoLink, 
   isVideoLinkActive,
+  searchQuery,
+  onSearchChange,
   onClose,
   isMobile = false
 }: NavigationProps) {
