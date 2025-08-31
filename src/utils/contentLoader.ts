@@ -1,15 +1,16 @@
 import { Group } from '../types';
 
-// Recursively discover all JSON files in the content directory
-async function discoverContentFiles(basePath: string = '/content'): Promise<string[]> {
+// Recursively discover all folders and JSON files in the content directory
+async function discoverContentStructure(basePath: string = '/content'): Promise<{files: string[], folders: string[]}> {
   const contentFiles: string[] = [];
+  const contentFolders: string[] = [];
   
   try {
     // Try to fetch the directory listing
     const response = await fetch(basePath);
     if (!response.ok) {
       console.warn(`Could not access ${basePath}`);
-      return [];
+      return { files: [], folders: [] };
     }
     
     const html = await response.text();
@@ -26,9 +27,14 @@ async function discoverContentFiles(basePath: string = '/content'): Promise<stri
       const fullPath = `${basePath}/${href}`.replace(/\/+/g, '/');
       
       if (href.endsWith('/')) {
-        // It's a directory, recursively scan it
-        const subFiles = await discoverContentFiles(fullPath.slice(0, -1));
-        contentFiles.push(...subFiles);
+        // It's a directory
+        const folderPath = fullPath.slice(0, -1);
+        contentFolders.push(folderPath);
+        
+        // Recursively scan subdirectories
+        const subStructure = await discoverContentStructure(folderPath);
+        contentFiles.push(...subStructure.files);
+        contentFolders.push(...subStructure.folders);
       } else if (href.endsWith('.json')) {
         // It's a JSON file
         contentFiles.push(fullPath);
@@ -38,13 +44,12 @@ async function discoverContentFiles(basePath: string = '/content'): Promise<stri
     console.warn(`Error scanning directory ${basePath}:`, error);
   }
   
-  return contentFiles;
+  return { files: contentFiles, folders: contentFolders };
 }
 
 // Fallback function for when dynamic discovery fails
 async function getFallbackFiles(): Promise<string[]> {
   const knownFiles = [
-    '/content/kids/kids_populer.json',
     '/content/Çocuk/kids_populer.json'
   ];
   
@@ -64,28 +69,117 @@ async function getFallbackFiles(): Promise<string[]> {
   return validFiles;
 }
 
-export async function loadAllContent(): Promise<Group[]> {
-  const allGroups: Group[] = [];
+// Create folder structure from discovered folders
+function createFolderStructure(folders: string[]): Group[] {
+  const groups: Group[] = [];
   
+  // Sort folders to ensure parent folders are processed before children
+  const sortedFolders = folders.sort((a, b) => {
+    const aDepth = a.split('/').length;
+    const bDepth = b.split('/').length;
+    if (aDepth !== bDepth) return aDepth - bDepth;
+    return a.localeCompare(b);
+  });
+  
+  for (const folderPath of sortedFolders) {
+    const pathParts = folderPath.split('/').filter(part => part && part !== 'content');
+    if (pathParts.length === 0) continue;
+    
+    // Create group name from the first directory
+    const mainCategory = pathParts[0];
+    const groupName = mainCategory.charAt(0).toUpperCase() + mainCategory.slice(1);
+    
+    // Find or create the main group
+    let existingGroup = groups.find(g => g.name === groupName);
+    if (!existingGroup) {
+      existingGroup = {
+        name: groupName,
+        subgroups: []
+      };
+      groups.push(existingGroup);
+    }
+    
+    // Create nested folder structure
+    if (pathParts.length > 1) {
+      let currentLevel = existingGroup.subgroups;
+      
+      // Navigate through the path (skip first part which is the main group)
+      for (let i = 1; i < pathParts.length; i++) {
+        const folderName = pathParts[i];
+        const displayName = folderName.charAt(0).toUpperCase() + folderName.slice(1);
+        
+        let folder = currentLevel.find(sg => sg.name === folderName);
+        if (!folder) {
+          folder = {
+            name: folderName,
+            viewName: displayName,
+            channelId: '',
+            videos: [],
+            subgroups: []
+          };
+          currentLevel.push(folder);
+        }
+        
+        if (!folder.subgroups) {
+          folder.subgroups = [];
+        }
+        currentLevel = folder.subgroups;
+      }
+    }
+  }
+  
+  return groups;
+}
+
+export async function loadAllContent(): Promise<Group[]> {
   try {
     console.log('Starting dynamic content discovery...');
     
-    // Try dynamic discovery first
-    let contentFiles = await discoverContentFiles('/content');
-    
-    // If dynamic discovery fails or returns no files, use fallback
-    if (contentFiles.length === 0) {
-      console.log('Dynamic discovery failed, using fallback...');
-      contentFiles = await getFallbackFiles();
-    }
+    // Discover both files and folders
+    const { files: contentFiles, folders: contentFolders } = await discoverContentStructure('/content');
     
     console.log('Discovered content files:', contentFiles);
+    console.log('Discovered content folders:', contentFolders);
     
-    if (contentFiles.length === 0) {
-      console.warn('No content files found');
-      return [];
+    // Create folder structure first
+    const allGroups = createFolderStructure(contentFolders);
+    
+    // If no folders found, use fallback
+    if (allGroups.length === 0 && contentFiles.length === 0) {
+      console.log('No content discovered, using fallback...');
+      const fallbackFiles = await getFallbackFiles();
+      
+      // Process fallback files
+      for (const filePath of fallbackFiles) {
+        try {
+          const response = await fetch(filePath);
+          if (!response.ok) continue;
+          
+          const data = await response.json();
+          if (!Array.isArray(data)) continue;
+          
+          const pathParts = filePath.split('/').filter(part => part && part !== 'content');
+          const mainCategory = pathParts[0];
+          const groupName = mainCategory.charAt(0).toUpperCase() + mainCategory.slice(1);
+          
+          let existingGroup = allGroups.find(g => g.name === groupName);
+          if (!existingGroup) {
+            existingGroup = { name: groupName, subgroups: [] };
+            allGroups.push(existingGroup);
+          }
+          
+          for (const item of data) {
+            if (item.name && item.subgroups && Array.isArray(item.subgroups)) {
+              existingGroup.subgroups.push(...item.subgroups);
+            }
+          }
+        } catch (error) {
+          console.error(`Error loading fallback file ${filePath}:`, error);
+        }
+      }
     }
     
+    // Now load JSON content into the folder structure
     for (const filePath of contentFiles) {
       try {
         console.log(`Loading content from: ${filePath}`);
@@ -109,7 +203,7 @@ export async function loadAllContent(): Promise<Group[]> {
           continue;
         }
         
-        // Parse the file path to create group hierarchy
+        // Parse the file path to find the correct location in the structure
         const pathParts = filePath.split('/').filter(part => part && part !== 'content');
         pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].replace('.json', '');
         
@@ -117,7 +211,7 @@ export async function loadAllContent(): Promise<Group[]> {
         const mainCategory = pathParts[0];
         const groupName = mainCategory.charAt(0).toUpperCase() + mainCategory.slice(1);
         
-        // Find or create the main group
+        // Find the main group
         let existingGroup = allGroups.find(g => g.name === groupName);
         if (!existingGroup) {
           existingGroup = {
@@ -130,40 +224,34 @@ export async function loadAllContent(): Promise<Group[]> {
         // Process each item in the JSON data
         for (const item of data) {
           if (item.name && item.subgroups && Array.isArray(item.subgroups)) {
-            // If we have nested folders, create nested structure
-            if (pathParts.length > 2) {
-              // Create nested subgroup structure
-              let currentLevel = existingGroup.subgroups;
+            // Navigate to the correct location in the folder structure
+            let currentLevel = existingGroup.subgroups;
+            
+            // Navigate through the path (skip first part which is the main group, and last part which is the file name)
+            for (let i = 1; i < pathParts.length - 1; i++) {
+              const folderName = pathParts[i];
               
-              // Navigate through the path (skip first part which is the main group)
-              for (let i = 1; i < pathParts.length - 1; i++) {
-                const folderName = pathParts[i];
+              let folder = currentLevel.find(sg => sg.name === folderName);
+              if (!folder) {
                 const displayName = folderName.charAt(0).toUpperCase() + folderName.slice(1);
-                
-                let folder = currentLevel.find(sg => sg.name === folderName);
-                if (!folder) {
-                  folder = {
-                    name: folderName,
-                    viewName: displayName,
-                    channelId: '',
-                    videos: [],
-                    subgroups: []
-                  };
-                  currentLevel.push(folder);
-                }
-                
-                if (!folder.subgroups) {
-                  folder.subgroups = [];
-                }
-                currentLevel = folder.subgroups;
+                folder = {
+                  name: folderName,
+                  viewName: displayName,
+                  channelId: '',
+                  videos: [],
+                  subgroups: []
+                };
+                currentLevel.push(folder);
               }
               
-              // Add the actual content to the final level
-              currentLevel.push(...item.subgroups);
-            } else {
-              // Direct subgroups
-              existingGroup.subgroups.push(...item.subgroups);
+              if (!folder.subgroups) {
+                folder.subgroups = [];
+              }
+              currentLevel = folder.subgroups;
             }
+            
+            // Add the actual content to the final level
+            currentLevel.push(...item.subgroups);
           }
         }
       } catch (error) {
