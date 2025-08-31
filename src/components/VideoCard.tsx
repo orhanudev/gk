@@ -14,11 +14,17 @@ interface VideoCardProps {
   onToggleSelection?: (videoId: string) => void;
 }
 
-const shareVideo = async (video: Video) => {
-  const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+const shareVideo = async (video: Video, useGKLink: boolean = true) => {
+  const videoId = video.id.videoId || String(video.id);
+  const videoUrl = useGKLink 
+    ? `${window.location.origin}?v=${videoId}`
+    : `https://www.youtube.com/watch?v=${videoId}`;
+  
   const shareData = {
     title: video.snippet.title,
-    text: `${video.snippet.title} - ${video.snippet.channelTitle}`,
+    text: useGKLink 
+      ? `${video.snippet.title} - GK'da izle`
+      : `${video.snippet.title} - ${video.snippet.channelTitle}`,
     url: videoUrl
   };
 
@@ -28,19 +34,18 @@ const shareVideo = async (video: Video) => {
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(videoUrl);
-      // Show a temporary notification (you could enhance this with a toast)
-      alert('Video linki panoya kopyalandı!');
+      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
     }
   } catch (error) {
     console.error('Error sharing:', error);
     // Fallback: copy to clipboard
     try {
       await navigator.clipboard.writeText(videoUrl);
-      alert('Video linki panoya kopyalandı!');
+      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
     } catch (clipboardError) {
       console.error('Clipboard error:', clipboardError);
       // Final fallback: show URL in prompt
-      prompt('Video linkini kopyalayın:', videoUrl);
+      prompt(useGKLink ? 'GK video linkini kopyalayın:' : 'YouTube video linkini kopyalayın:', videoUrl);
     }
   }
 };
@@ -175,23 +180,49 @@ export function VideoCard({
           </button>
           
           <div className="flex items-center space-x-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isSelectionMode) {
-                  shareVideo(video);
-                }
-              }}
-              className={`transition-colors ${
-                isSelectionMode 
-                  ? 'text-gray-600 cursor-not-allowed' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-              title="Paylaş"
-              disabled={isSelectionMode}
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
+            <div className="relative group">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isSelectionMode) {
+                    shareVideo(video, true); // Use GK link by default
+                  }
+                }}
+                className={`transition-colors ${
+                  isSelectionMode 
+                    ? 'text-gray-600 cursor-not-allowed' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="GK'da Paylaş"
+                disabled={isSelectionMode}
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              
+              {/* Share Options Dropdown */}
+              {!isSelectionMode && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 rounded-lg shadow-lg p-2 whitespace-nowrap z-10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shareVideo(video, true);
+                    }}
+                    className="block w-full text-left px-3 py-1 text-white hover:bg-gray-600 rounded text-xs"
+                  >
+                    GK'da Paylaş
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      shareVideo(video, false);
+                    }}
+                    className="block w-full text-left px-3 py-1 text-white hover:bg-gray-600 rounded text-xs"
+                  >
+                    YouTube'da Paylaş
+                  </button>
+                </div>
+              )}
+            </div>
             
             <button
               onClick={(e) => {

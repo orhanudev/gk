@@ -22,11 +22,17 @@ interface PlaylistManagerProps {
   onImportPlaylist?: (videos: VideoType[], title: string) => void;
 }
 
-const shareVideo = async (video: VideoType) => {
-  const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+const shareVideo = async (video: VideoType, useGKLink: boolean = true) => {
+  const videoId = video.id.videoId || String(video.id);
+  const videoUrl = useGKLink 
+    ? `${window.location.origin}?v=${videoId}`
+    : `https://www.youtube.com/watch?v=${videoId}`;
+  
   const shareData = {
     title: video.snippet.title,
-    text: `${video.snippet.title} - ${video.snippet.channelTitle}`,
+    text: useGKLink 
+      ? `${video.snippet.title} - GK'da izle`
+      : `${video.snippet.title} - ${video.snippet.channelTitle}`,
     url: videoUrl
   };
 
@@ -35,16 +41,16 @@ const shareVideo = async (video: VideoType) => {
       await navigator.share(shareData);
     } else {
       await navigator.clipboard.writeText(videoUrl);
-      alert('Video linki panoya kopyalandı!');
+      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
     }
   } catch (error) {
     console.error('Error sharing:', error);
     try {
       await navigator.clipboard.writeText(videoUrl);
-      alert('Video linki panoya kopyalandı!');
+      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
     } catch (clipboardError) {
       console.error('Clipboard error:', clipboardError);
-      prompt('Video linkini kopyalayın:', videoUrl);
+      prompt(useGKLink ? 'GK video linkini kopyalayın:' : 'YouTube video linkini kopyalayın:', videoUrl);
     }
   }
 };

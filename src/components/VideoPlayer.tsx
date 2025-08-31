@@ -8,11 +8,17 @@ interface VideoPlayerProps {
   onAddToPlaylist?: (video: Video) => void;
 }
 
-const shareVideo = async (video: Video) => {
-  const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+const shareVideo = async (video: Video, useGKLink: boolean = true) => {
+  const videoId = video.id.videoId || String(video.id);
+  const videoUrl = useGKLink 
+    ? `${window.location.origin}?v=${videoId}`
+    : `https://www.youtube.com/watch?v=${videoId}`;
+  
   const shareData = {
     title: video.snippet.title,
-    text: `${video.snippet.title} - ${video.snippet.channelTitle}`,
+    text: useGKLink 
+      ? `${video.snippet.title} - GK'da izle`
+      : `${video.snippet.title} - ${video.snippet.channelTitle}`,
     url: videoUrl
   };
 
@@ -22,16 +28,16 @@ const shareVideo = async (video: Video) => {
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(videoUrl);
-      alert('Video linki panoya kopyalandı!');
+      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
     }
   } catch (error) {
     console.error('Error sharing:', error);
     try {
       await navigator.clipboard.writeText(videoUrl);
-      alert('Video linki panoya kopyalandı!');
+      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
     } catch (clipboardError) {
       console.error('Clipboard error:', clipboardError);
-      prompt('Video linkini kopyalayın:', videoUrl);
+      prompt(useGKLink ? 'GK video linkini kopyalayın:' : 'YouTube video linkini kopyalayın:', videoUrl);
     }
   }
 };
@@ -81,13 +87,31 @@ export function VideoPlayer({ video, onClose, onAddToPlaylist }: VideoPlayerProp
                 <List className="w-5 h-5" />
               </button>
             )}
-            <button
-              onClick={() => shareVideo(video)}
-              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 mr-2"
-              title="Paylaş"
-            >
-              <Share2 className="w-5 h-5" />
-            </button>
+            <div className="relative group mr-2">
+              <button
+                onClick={() => shareVideo(video, true)}
+                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+                title="GK'da Paylaş"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+              
+              {/* Share Options Dropdown */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 rounded-lg shadow-lg p-2 whitespace-nowrap z-10">
+                <button
+                  onClick={() => shareVideo(video, true)}
+                  className="block w-full text-left px-3 py-2 text-white hover:bg-gray-600 rounded text-sm"
+                >
+                  GK'da Paylaş
+                </button>
+                <button
+                  onClick={() => shareVideo(video, false)}
+                  className="block w-full text-left px-3 py-2 text-white hover:bg-gray-600 rounded text-sm"
+                >
+                  YouTube'da Paylaş
+                </button>
+              </div>
+            </div>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
