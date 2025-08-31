@@ -181,7 +181,8 @@ export default function App() {
             isPlaylistsActive={currentView === 'playlists'}
             onShowVideoLink={() => setCurrentView('videolink')}
             isVideoLinkActive={currentView === 'videolink'}
-            onClose={() => setSidebarOpen(false)}
+            onAddToPlaylist={setPlaylistModalVideo}
+            onAddToPlaylistModal={setPlaylistModalVideo}
             isMobile={isMobile}
           />
         </div>
@@ -260,6 +261,7 @@ export default function App() {
             <VideoLinkInput
               onPlayVideo={setCurrentVideo}
               onAddToPlaylist={setPlaylistModalVideo}
+              onAddToPlaylistModal={setPlaylistModalVideo}
             />
           ) : currentView === 'videos' ? (
             <>

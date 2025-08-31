@@ -7,9 +7,10 @@ import { Video } from '../types';
 interface YouTubeSearchProps {
   onAddToPlaylist: (video: Video) => void;
   onPlayVideo: (video: Video) => void;
+  onAddToPlaylistModal: (video: Video) => void;
 }
 
-export function YouTubeSearch({ onAddToPlaylist, onPlayVideo }: YouTubeSearchProps) {
+export function YouTubeSearch({ onAddToPlaylist, onPlayVideo, onAddToPlaylistModal }: YouTubeSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { searchResults, loading, error, searchVideos } = useYouTubeSearch();
 
@@ -87,7 +88,7 @@ export function YouTubeSearch({ onAddToPlaylist, onPlayVideo }: YouTubeSearchPro
           <VideoGrid
             videos={searchResults}
             onPlayVideo={onPlayVideo}
-            onAddToPlaylist={onAddToPlaylist}
+            onAddToPlaylist={onAddToPlaylistModal}
           />
         </div>
       )}

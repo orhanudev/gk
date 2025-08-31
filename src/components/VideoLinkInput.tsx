@@ -6,9 +6,10 @@ import { Video } from '../types';
 interface VideoLinkInputProps {
   onPlayVideo: (video: Video) => void;
   onAddToPlaylist: (video: Video) => void;
+  onAddToPlaylistModal: (video: Video) => void;
 }
 
-export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputProps) {
+export function VideoLinkInput({ onPlayVideo, onAddToPlaylist, onAddToPlaylistModal }: VideoLinkInputProps) {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -51,7 +52,7 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputP
     }
 
     const video = createVideoFromUrl(url);
-    onAddToPlaylist(video);
+    onAddToPlaylistModal(video);
     setSuccess('Video oynatma listesi seçimine eklendi');
     setUrl('');
   };
