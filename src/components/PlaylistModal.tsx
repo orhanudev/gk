@@ -35,7 +35,7 @@ export function PlaylistModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] md:max-h-[80vh] overflow-hidden mx-2 md:mx-0">
+      <div className="bg-gray-800 rounded-lg max-w-md w-full max-h-[95vh] overflow-hidden mx-2 md:mx-0 flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <h3 className="text-white text-lg font-semibold">Oynatma Listesine Ekle</h3>
           <button
@@ -46,7 +46,7 @@ export function PlaylistModal({
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-1 min-h-0">
           <div className="bg-gray-700 p-3 rounded-lg mb-4">
             <h4 className="text-white text-sm font-medium truncate">
               {video.snippet.title}
@@ -56,7 +56,7 @@ export function PlaylistModal({
             </p>
           </div>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+          <div className="space-y-2 flex-1 overflow-y-auto min-h-0 mb-4">
             {playlists.length === 0 ? (
               <p className="text-gray-400 text-center py-4">
                 Henüz oynatma listesi yok
