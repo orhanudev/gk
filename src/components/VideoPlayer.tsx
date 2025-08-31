@@ -87,31 +87,6 @@ export function VideoPlayer({ video, onClose, onAddToPlaylist }: VideoPlayerProp
                 <List className="w-5 h-5" />
               </button>
             )}
-            <div className="relative group mr-2">
-              <button
-                onClick={() => shareVideo(video, true)}
-                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
-                title="GK'da Paylaş"
-              >
-                <Share2 className="w-5 h-5" />
-              </button>
-              
-              {/* Share Options Dropdown */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 rounded-lg shadow-lg p-2 whitespace-nowrap z-10">
-                <button
-                  onClick={() => shareVideo(video, true)}
-                  className="block w-full text-left px-3 py-2 text-white hover:bg-gray-600 rounded text-sm"
-                >
-                  GK'da Paylaş
-                </button>
-                <button
-                  onClick={() => shareVideo(video, false)}
-                  className="block w-full text-left px-3 py-2 text-white hover:bg-gray-600 rounded text-sm"
-                >
-                  YouTube'da Paylaş
-                </button>
-              </div>
-            </div>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"

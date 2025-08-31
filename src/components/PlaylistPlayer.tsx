@@ -280,17 +280,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        shareVideo(video, true);
-                      }}
-                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} text-gray-500 hover:text-gray-400`}
-                      title="GK'da Paylaş"
-                    >
-                      <Share2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-                    </button>
-                    
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
                         toggleWatched(videoId);
                       }}
                       className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} ${
