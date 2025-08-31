@@ -256,7 +256,7 @@ export default function App() {
                   <span className="hidden sm:inline">Listelerim </span>({playlists.length})
                 </button>
               </div>
-            </div>
+            <h1 className="text-white text-lg md:text-xl font-bold truncate">Gözden Kalbe</h1>
           </div>
         </header>
 
