@@ -252,6 +252,26 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   // Create embed URL with autoplay parameters - use currentVideoIndex as key to force reload
   const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
 
+  const handleToggleWatched = () => {
+    if (!currentVideoId) return;
+    
+    const newWatchedVideos = new Set(watchedVideos);
+    if (newWatchedVideos.has(currentVideoId)) {
+      newWatchedVideos.delete(currentVideoId);
+    } else {
+      newWatchedVideos.add(currentVideoId);
+    }
+    setWatchedVideos(newWatchedVideos);
+    
+    const updatedPlaylist = {
+      ...playlist,
+      watchedVideos: newWatchedVideos,
+      currentVideoIndex
+    };
+    onUpdatePlaylist(updatedPlaylist);
+  };
+
+  const isCurrentVideoWatched = currentVideoId ? watchedVideos.has(currentVideoId) : false;
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-90 z-50 ${
       isMobile ? 'flex flex-col' : 'flex'
@@ -463,14 +483,27 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                 </button>
               )}
               
-              <button
+                  const newWatchedVideos = new Set(watchedVideos);
+                  if (newWatchedVideos.has(videoId)) {
+                    newWatchedVideos.delete(videoId);
+                  } else {
+                    newWatchedVideos.add(videoId);
+                  }
+                  setWatchedVideos(newWatchedVideos);
+                  
+                  const updatedPlaylist = {
+                    ...playlist,
+                    watchedVideos: newWatchedVideos,
+                    currentVideoIndex
+                  };
+                  onUpdatePlaylist(updatedPlaylist);
                 onClick={() => toggleWatched(currentVideoId)}
                 className={`rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'} ${
-                  currentVideoId && watchedVideos.has(currentVideoId)
+                  isCurrentVideoWatched
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
                 }`}
-                title={currentVideoId && watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+                title={isCurrentVideoWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
               >
                 <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
               </button>
@@ -478,7 +511,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
               <button
                 onClick={toggleFullscreen}
                 className={`bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
-                title={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
+                  handleToggleWatched();
               >
                 {isFullscreen ? <Minimize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> : <Maximize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />}
               </button>
