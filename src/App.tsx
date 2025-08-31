@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { List, Search, Play, Folder, Video as VideoIcon, Youtube } from 'lucide-react';
+import { List, Search, Play, Folder, Video as VideoIcon, Youtube, X, Plus } from 'lucide-react';
 import { useVideoData } from './hooks/useVideoData';
 import { usePlaylistData } from './hooks/usePlaylistData';
 import { Navigation } from './components/Navigation';
