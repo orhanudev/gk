@@ -73,18 +73,3 @@ export function getVideoThumbnail(videoId: string, quality: 'default' | 'medium'
 export function isValidYouTubeUrl(url: string): boolean {
   return extractVideoIdFromUrl(url) !== null;
 }
-
-export function createGKShareUrl(video: Video): string {
-  const videoId = video.id.videoId || String(video.id);
-  const baseUrl = window.location.origin;
-  return `${baseUrl}?v=${videoId}`;
-}
-
-export function extractVideoIdFromGKUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.searchParams.get('v');
-  } catch {
-    return null;
-  }
-}

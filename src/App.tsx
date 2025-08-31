@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { List, Search, Play, Folder, Video as VideoIcon, Youtube, X, Plus } from 'lucide-react';
 import { useVideoData } from './hooks/useVideoData';
 import { usePlaylistData } from './hooks/usePlaylistData';
-import { useDeepLink } from './hooks/useDeepLink';
 import { Navigation } from './components/Navigation';
 import { VideoGrid } from './components/VideoGrid';
 import { SubgroupGrid } from './components/SubgroupGrid';
@@ -45,9 +44,6 @@ export default function App() {
   const [forceClosePlaylist, setForceClosePlaylist] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-
-  // Handle deep linking for shared videos
-  useDeepLink({ onPlayVideo: setCurrentVideo });
 
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
