@@ -130,7 +130,14 @@ async function discoverSubfolders(
       });
     }
   } catch (error) {
+    console.warn(`Could not access subfolder ${parentFolder}:`, error);
   }
+}
+
+async function probeForExistingContent(
+  discoveredFolders: string[], 
+  discoveredFiles: string[]
+): Promise<void> {
   // Try to discover folders by checking for common patterns
   // We'll use a more systematic approach to find any existing folders
   const alphabet = 'abcdefghijklmnopqrstuvwxyz';
@@ -154,7 +161,12 @@ async function discoverSubfolders(
     'tarih', 'history', 'historical',
     'doğa', 'doga', 'nature', 'animals',
     'sağlık', 'saglik', 'health', 'fitness',
-  ]
+    // Add alphabet and numbers
+    ...alphabet.split(''),
+    ...alphabet.toUpperCase().split(''),
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
+  ];
+  
   // Try to discover subfolders by checking common patterns
   const commonSubfolders = [
     // Turkish subfolder names
@@ -182,29 +194,63 @@ async function discoverSubfolders(
     'seyahat', 'travel', 'gezi',
     'oyun', 'games', 'gaming',
     'test', 'demo', 'example', 'ornek',
-    // Numbers and letters for simple naming
-    ...alphabet.split(''),
-    ...alphabet.toUpperCase().split(''),
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-    '01', '02', '03', '04', '05'
+    'index', 'main', 'default'
   ];
   
+  // Probe for main folders
   for (const folderName of commonNames) {
     try {
-      const response = await fetch(`/content/${filePath}`, { method: 'HEAD' });
+      const response = await fetch(`/content/${folderName}/`, { method: 'HEAD' });
       if (response.ok) {
-        discoveredFiles.push(filePath);
-        console.log(`Found existing file: ${filePath}`);
-        
-        // Extract folder from file path
-        const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
-        if (folderPath && !discoveredFolders.includes(folderPath)) {
-          discoveredFolders.push(folderPath);
-          console.log(`Found existing folder: ${folderPath}`);
+        if (!discoveredFolders.includes(folderName)) {
+          discoveredFolders.push(folderName);
+          console.log(`Found existing folder: ${folderName}`);
+          
+          // Probe for subfolders within this main folder
+          for (const subfolderName of commonSubfolders) {
+            try {
+              const subResponse = await fetch(`/content/${folderName}/${subfolderName}/`, { method: 'HEAD' });
+              if (subResponse.ok) {
+                const fullSubfolderPath = `${folderName}/${subfolderName}`;
+                if (!discoveredFolders.includes(fullSubfolderPath)) {
+                  discoveredFolders.push(fullSubfolderPath);
+                  console.log(`Found existing subfolder: ${fullSubfolderPath}`);
+                }
+              }
+            } catch (error) {
+              // Subfolder doesn't exist, continue
+            }
+          }
+          
+          // Probe for JSON files in this folder
+          const filePatterns = [
+            'index.json',
+            'videos.json',
+            'content.json',
+            'data.json',
+            `${folderName}.json`,
+            `${folderName}_videos.json`,
+            `${folderName}_content.json`
+          ];
+          
+          for (const fileName of filePatterns) {
+            try {
+              const fileResponse = await fetch(`/content/${folderName}/${fileName}`, { method: 'HEAD' });
+              if (fileResponse.ok) {
+                const filePath = `${folderName}/${fileName}`;
+                if (!discoveredFiles.includes(filePath)) {
+                  discoveredFiles.push(filePath);
+                  console.log(`Found existing file: ${filePath}`);
+                }
+              }
+            } catch (error) {
+              // File doesn't exist, continue
+            }
+          }
         }
       }
     } catch (error) {
-      console.warn(`Could not probe for ${filePath}:`, error);
+      // Folder doesn't exist, continue
     }
   }
 }
