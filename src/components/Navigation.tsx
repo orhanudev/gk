@@ -223,6 +223,21 @@ export function Navigation({
         <button
           onClick={() => {
             onNavigate([]);
+            onShowAbout();
+          }}
+          className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors mt-2 ${
+            isAboutActive
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-300 hover:bg-gray-700'
+          }`}
+        >
+          <Info className="w-5 h-5 mr-3" />
+          <span className="font-medium">Hakkında</span>
+        </button>
+        
+        <button
+          onClick={() => {
+            onNavigate([]);
             onShowPlaylists();
           }}
           className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors mt-2 ${
@@ -330,22 +345,6 @@ export function Navigation({
       </div>
 
       {/* About Link at Bottom */}
-      <div className="mt-auto pt-4 border-t border-gray-700">
-        <button
-          onClick={() => {
-            onNavigate([]);
-            onShowAbout();
-          }}
-          className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors ${
-            isAboutActive
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-300 hover:bg-gray-700'
-          }`}
-        >
-          <Info className="w-5 h-5 mr-3" />
-          <span className="font-medium">Hakkında</span>
-        </button>
-      </div>
     </nav>
   );
 }
