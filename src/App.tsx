@@ -22,7 +22,8 @@ export default function App() {
     addToPlaylist, 
     removeFromPlaylist, 
     deletePlaylist, 
-    markAsWatched 
+    markAsWatched,
+    toggleWatched
   } = usePlaylistData();
   
   const [currentPath, setCurrentPath] = useState<NavigationItem[]>([]);
@@ -324,6 +325,7 @@ export default function App() {
               onDeletePlaylist={handleDeletePlaylist}
               onAddVideoToPlaylist={setPlaylistModalVideo}
               onCreatePlaylist={handleCreatePlaylist}
+              onToggleWatched={toggleWatched}
             />
           )}
         </main>

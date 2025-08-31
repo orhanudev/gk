@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { List, Play } from 'lucide-react';
+import { List, Play, Check } from 'lucide-react';
 import { Video } from '../types';
 import { formatDuration } from '../utils/videoUtils';
 
@@ -7,9 +7,11 @@ interface VideoCardProps {
   video: Video;
   onPlayVideo: (video: Video) => void;
   onAddToPlaylist: (video: Video) => void;
+  isWatched?: boolean;
+  onToggleWatched?: (video: Video) => void;
 }
 
-export function VideoCard({ video, onPlayVideo, onAddToPlaylist }: VideoCardProps) {
+export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = false, onToggleWatched }: VideoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const thumbnailUrl = video.snippet.thumbnails?.high?.url || 
@@ -52,6 +54,14 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist }: VideoCardProp
         {video.snippet.duration && (
           <div className="absolute bottom-2 right-2 bg-black bg-opacity-80 text-white text-xs px-2 py-1 rounded">
             {formatDuration(video.snippet.duration)}
+          </div>
+        )}
+        
+        {/* Watched Badge */}
+        {isWatched && (
+          <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
+            <Check className="w-3 h-3 mr-1" />
+            İzlendi
           </div>
         )}
         
@@ -105,6 +115,23 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist }: VideoCardProp
           >
             <List className="w-4 h-4" />
           </button>
+          
+          {onToggleWatched && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleWatched(video);
+              }}
+              className={`transition-colors ${
+                isWatched 
+                  ? 'text-green-400 hover:text-green-300' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+            >
+              <Check className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

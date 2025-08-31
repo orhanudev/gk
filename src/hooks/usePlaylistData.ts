@@ -59,6 +59,23 @@ export function usePlaylistData() {
     );
   };
 
+  const toggleWatched = (playlistId: string, videoId: string) => {
+    setPlaylists(prev =>
+      prev.map(playlist => {
+        if (playlist.id === playlistId) {
+          const newWatchedVideos = new Set(playlist.watchedVideos);
+          if (newWatchedVideos.has(videoId)) {
+            newWatchedVideos.delete(videoId);
+          } else {
+            newWatchedVideos.add(videoId);
+          }
+          return { ...playlist, watchedVideos: newWatchedVideos };
+        }
+        return playlist;
+      })
+    );
+  };
+
   return {
     playlists,
     createPlaylist,
@@ -66,6 +83,7 @@ export function usePlaylistData() {
     removeFromPlaylist,
     deletePlaylist,
     markAsWatched,
+    toggleWatched,
     refreshPlaylists: () => {} // No-op since we're using localStorage
   };
 }

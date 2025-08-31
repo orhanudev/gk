@@ -17,6 +17,7 @@ interface PlaylistManagerProps {
   onDeletePlaylist: (playlistId: string) => void;
   onAddVideoToPlaylist: (video: VideoType | null) => void;
   onCreatePlaylist: (name: string, videos?: VideoType[]) => void;
+  onToggleWatched: (playlistId: string, videoId: string) => void;
 }
 
 export function PlaylistManager({
@@ -25,7 +26,8 @@ export function PlaylistManager({
   onRemoveFromPlaylist,
   onDeletePlaylist,
   onAddVideoToPlaylist,
-  onCreatePlaylist
+  onCreatePlaylist,
+  onToggleWatched
 }: PlaylistManagerProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
@@ -134,9 +136,10 @@ export function PlaylistManager({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {playlist.videos.slice(0, 8).map((video) => {
                     const isWatched = playlist.watchedVideos?.has(video.id.videoId || video.id);
+                    const videoId = video.id.videoId || video.id;
                     return (
                       <div
-                        key={video.id.videoId || video.id}
+                        key={videoId}
                         className="group relative bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors cursor-pointer"
                         onClick={() => handlePlayVideo(video)}
                       >
@@ -150,8 +153,9 @@ export function PlaylistManager({
                             <Play className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                           {isWatched && (
-                            <div className="absolute top-2 right-2 bg-green-600 rounded-full p-1">
-                              <Check className="w-3 h-3 text-white" />
+                            <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
+                              <Check className="w-3 h-3 mr-1" />
+                              İzlendi
                             </div>
                           )}
                         </div>
@@ -163,15 +167,32 @@ export function PlaylistManager({
                             {video.snippet.channelTitle}
                           </p>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemoveFromPlaylist(playlist.id, video.id.videoId || video.id);
-                          }}
-                          className="absolute top-2 left-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                        <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleWatched(playlist.id, videoId);
+                            }}
+                            className={`p-1 rounded transition-colors ${
+                              isWatched 
+                                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                                : 'bg-gray-600 hover:bg-gray-700 text-white'
+                            }`}
+                            title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRemoveFromPlaylist(playlist.id, videoId);
+                            }}
+                            className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors"
+                            title="Listeden kaldır"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
