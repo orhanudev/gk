@@ -76,6 +76,14 @@ export function usePlaylistData() {
     );
   };
 
+  const updatePlaylist = (updatedPlaylist: Playlist) => {
+    setPlaylists(prev =>
+      prev.map(playlist =>
+        playlist.id === updatedPlaylist.id ? updatedPlaylist : playlist
+      )
+    );
+  };
+
   return {
     playlists,
     createPlaylist,

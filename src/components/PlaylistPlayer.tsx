@@ -11,29 +11,12 @@ interface PlaylistPlayerProps {
 export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: PlaylistPlayerProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     if (playlist) {
       setWatchedVideos(new Set(playlist.watchedVideos || []));
       setCurrentVideoIndex(playlist.currentVideoIndex || 0);
-      
-      // Mark the initial video as watched when playlist opens
-      const initialVideo = playlist.videos[playlist.currentVideoIndex || 0];
-      if (initialVideo) {
-        const initialVideoId = getVideoId(initialVideo);
-        const newWatchedVideos = new Set(playlist.watchedVideos || []);
-        newWatchedVideos.add(initialVideoId);
-        setWatchedVideos(newWatchedVideos);
-        
-        // Update the playlist with the watched status
-        const updatedPlaylist = {
-          ...playlist,
-          watchedVideos: newWatchedVideos
-        };
-        onUpdatePlaylist(updatedPlaylist);
-      }
     }
   }, [playlist]);
 
@@ -68,7 +51,20 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     if (currentVideoIndex < playlist.videos.length - 1) {
       const newIndex = currentVideoIndex + 1;
       setCurrentVideoIndex(newIndex);
-      updatePlaylist(newIndex);
+      
+      // Mark the new video as watched and update playlist
+      const newVideo = playlist.videos[newIndex];
+      const newVideoId = getVideoId(newVideo);
+      const newWatchedVideos = new Set(watchedVideos);
+      newWatchedVideos.add(newVideoId);
+      setWatchedVideos(newWatchedVideos);
+      
+      const updatedPlaylist = {
+        ...playlist,
+        currentVideoIndex: newIndex,
+        watchedVideos: newWatchedVideos
+      };
+      onUpdatePlaylist(updatedPlaylist);
     }
   };
 
@@ -76,13 +72,19 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     if (currentVideoIndex > 0) {
       const newIndex = currentVideoIndex - 1;
       setCurrentVideoIndex(newIndex);
-      updatePlaylist(newIndex);
+      
+      // Update playlist with new index
+      const updatedPlaylist = {
+        ...playlist,
+        currentVideoIndex: newIndex,
+        watchedVideos: watchedVideos
+      };
+      onUpdatePlaylist(updatedPlaylist);
     }
   };
 
   const handleVideoSelect = (index: number) => {
     setCurrentVideoIndex(index);
-    setIsPlaying(true);
     
     // Mark the selected video as watched immediately
     const selectedVideo = playlist.videos[index];
@@ -91,19 +93,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     newWatchedVideos.add(selectedVideoId);
     setWatchedVideos(newWatchedVideos);
     
-    updatePlaylist(index);
-  };
-
-  const updatePlaylist = (newIndex: number) => {
-    // Mark current video as watched when updating playlist
-    const currentVideoId = getVideoId(playlist.videos[newIndex]);
-    const newWatchedVideos = new Set(watchedVideos);
-    newWatchedVideos.add(currentVideoId);
-    setWatchedVideos(newWatchedVideos);
-    
+    // Update the playlist with new index and watched status
     const updatedPlaylist = {
       ...playlist,
-      currentVideoIndex: newIndex,
+      currentVideoIndex: index,
       watchedVideos: newWatchedVideos
     };
     onUpdatePlaylist(updatedPlaylist);
@@ -117,7 +110,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       newWatchedVideos.add(videoId);
     }
     setWatchedVideos(newWatchedVideos);
-
+    
     const updatedPlaylist = {
       ...playlist,
       watchedVideos: newWatchedVideos,
@@ -132,11 +125,19 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     newWatchedVideos.add(currentVideoId);
     setWatchedVideos(newWatchedVideos);
 
+    // Update playlist with watched status
+    const updatedPlaylist = {
+      ...playlist,
+      watchedVideos: newWatchedVideos,
+      currentVideoIndex
+    };
+    onUpdatePlaylist(updatedPlaylist);
+
     // Auto-advance to next video
     if (currentVideoIndex < playlist.videos.length - 1) {
       handleNext();
     } else {
-      setIsPlaying(false);
+      // Playlist finished
     }
   };
 
