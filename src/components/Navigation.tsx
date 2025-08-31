@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, Home, Folder, FolderOpen, Search, Youtube, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, Home, Folder, FolderOpen, Search, Youtube, X, List } from 'lucide-react';
 import { Group, Subgroup, NavigationItem } from '../types';
 
 interface NavigationProps {
