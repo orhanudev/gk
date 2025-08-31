@@ -456,7 +456,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
               {onAddToPlaylistModal && (
                 <button
                   onClick={() => onAddToPlaylistModal(currentVideo)}
-                  className={`bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
+                  className={`text-gray-400 hover:text-white transition-colors ${isMobile ? 'p-1.5' : 'p-2'} rounded-lg hover:bg-gray-700`}
                   title="Başka listeye ekle"
                 >
                   <Plus className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
@@ -464,8 +464,36 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
               )}
 
               <button
+                onClick={() => {
+                  const videoId = currentVideo.id.videoId || String(currentVideo.id) || '';
+                  const newWatchedVideos = new Set(watchedVideos);
+                  if (newWatchedVideos.has(videoId)) {
+                    newWatchedVideos.delete(videoId);
+                  } else {
+                    newWatchedVideos.add(videoId);
+                  }
+                  setWatchedVideos(newWatchedVideos);
+                  
+                  const updatedPlaylist = {
+                    ...playlist,
+                    watchedVideos: newWatchedVideos,
+                    currentVideoIndex
+                  };
+                  onUpdatePlaylist(updatedPlaylist);
+                }}
+                className={`transition-colors ${isMobile ? 'p-1.5' : 'p-2'} rounded-lg hover:bg-gray-700 ${
+                  watchedVideos.has(currentVideo.id.videoId || String(currentVideo.id) || '')
+                    ? 'text-green-400 hover:text-green-300'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title={watchedVideos.has(currentVideo.id.videoId || String(currentVideo.id) || '') ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+              >
+                <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+              </button>
+
+              <button
                 onClick={toggleFullscreen}
-                className={`bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
+                className={`text-gray-400 hover:text-white transition-colors ${isMobile ? 'p-1.5' : 'p-2'} rounded-lg hover:bg-gray-700`}
                 title="Tam ekran"
               >
                 {isFullscreen ? <Minimize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> : <Maximize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />}
@@ -473,7 +501,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
 
               <button
                 onClick={onClose}
-                className={`bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
+                className={`text-gray-400 hover:text-white transition-colors ${isMobile ? 'p-1.5' : 'p-2'} rounded-lg hover:bg-gray-700`}
                 title="Playlist'i Kapat"
               >
                 <X className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
