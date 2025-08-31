@@ -386,10 +386,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                         e.stopPropagation();
                         shareVideo(video);
                       }}
-                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} text-gray-500 hover:text-gray-400`}
-                      title="GK'da Paylaş"
+                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-1' : 'p-1.5'} text-gray-400 hover:text-white hover:bg-gray-600`}
+                      title="Paylaş"
                     >
-                      <Share2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                      <Share2 className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
                     </button>
                     
                     <button
@@ -397,15 +397,28 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                         e.stopPropagation();
                         toggleWatched(videoId);
                       }}
-                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} ${
+                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-1' : 'p-1.5'} hover:bg-gray-600 ${
                         isWatched
                           ? 'text-green-400 hover:text-green-300'
-                          : 'text-gray-500 hover:text-gray-400'
+                          : 'text-gray-400 hover:text-white'
                       }`}
                       title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
                     >
-                      <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                      <Check className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
                     </button>
+
+                    {onAddToPlaylistModal && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToPlaylistModal(video);
+                      }}
+                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-1' : 'p-1.5'} text-gray-400 hover:text-white hover:bg-gray-600`}
+                      title="Başka listeye ekle"
+                    >
+                      <Plus className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                    </button>
+                    )}
                   </div>
                 </div>
               </div>
