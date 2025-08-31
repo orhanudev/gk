@@ -62,7 +62,8 @@ export function PlaylistModal({
                 Henüz oynatma listesi yok
               </p>
             ) : (
-              playlists.map((playlist) => (
+              <div className="space-y-2">
+                {playlists.map((playlist) => (
                 <div
                   key={playlist.id}
                   className="flex items-center justify-between bg-gray-700 p-3 rounded-lg"
@@ -93,7 +94,8 @@ export function PlaylistModal({
                     </button>
                   </div>
                 </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
 
