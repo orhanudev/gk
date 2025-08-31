@@ -208,7 +208,7 @@ export default function App() {
               >
                 <List className="w-6 h-6" />
               </button>
-              <h1 className="text-white text-lg md:text-xl font-bold truncate">Gözden Kalbe</h1>
+              <h1 className="text-white text-lg md:text-xl font-bold truncate">Video Player</h1>
             </div>
             
             <div className="flex items-center space-x-2 md:space-x-4 min-w-0">

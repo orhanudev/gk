@@ -169,7 +169,7 @@ export function Navigation({
           }`}
         >
           <Search className="w-5 h-5 mr-3" />
-          <span className="font-medium">YouTube'da Ara</span>
+          <span className="font-medium">YT Search</span>
         </button>
         
         <button
@@ -181,7 +181,7 @@ export function Navigation({
           }`}
         >
           <Youtube className="w-5 h-5 mr-3" />
-          <span className="font-medium">YouTube Linki</span>
+          <span className="font-medium">YT Link</span>
         </button>
       </div>
 
