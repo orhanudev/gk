@@ -1,78 +1,62 @@
 import { useState, useEffect } from 'react';
 import { Playlist, Video } from '../types';
-import { videoDatabase } from '../database/database';
+import { useLocalStorage } from './useLocalStorage';
 
 export function usePlaylistData() {
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [playlists, setPlaylists] = useLocalStorage<Playlist[]>('video-playlists', []);
 
-  const loadPlaylists = async () => {
-    try {
-      await videoDatabase.initialize();
-      const dbPlaylists = await videoDatabase.getUserPlaylists();
-      setPlaylists(dbPlaylists);
-    } catch (error) {
-      console.error('Error loading playlists:', error);
-    }
+  const createPlaylist = (name: string, videos: Video[] = []) => {
+    const newPlaylist: Playlist = {
+      id: Date.now().toString(),
+      name,
+      videos,
+      createdAt: new Date().toISOString(),
+      watchedVideos: new Set(),
+      currentVideoIndex: 0
+    };
+
+    setPlaylists(prev => [...prev, newPlaylist]);
   };
 
-  useEffect(() => {
-    loadPlaylists();
-  }, []);
-
-  const createPlaylist = async (name: string, videos: Video[] = []) => {
-    try {
-      await videoDatabase.initialize();
-      const playlistId = await videoDatabase.createPlaylist(name);
-      
-      // Add videos to playlist if provided
-      for (const video of videos) {
-        await videoDatabase.addVideoToPlaylist(playlistId, video.id.videoId);
-      }
-      
-      await loadPlaylists(); // Refresh the list
-    } catch (error) {
-      console.error('Error creating playlist:', error);
-    }
+  const addToPlaylist = (playlistId: string, video: Video) => {
+    setPlaylists(prev => 
+      prev.map(playlist => 
+        playlist.id === playlistId
+          ? { ...playlist, videos: [...playlist.videos, video] }
+          : playlist
+      )
+    );
   };
 
-  const addToPlaylist = async (playlistId: string, video: Video) => {
-    try {
-      await videoDatabase.initialize();
-      await videoDatabase.addVideoToPlaylist(parseInt(playlistId), video.id.videoId);
-      await loadPlaylists(); // Refresh the list
-    } catch (error) {
-      console.error('Error adding video to playlist:', error);
-    }
+  const removeFromPlaylist = (playlistId: string, videoId: string) => {
+    setPlaylists(prev =>
+      prev.map(playlist =>
+        playlist.id === playlistId
+          ? { ...playlist, videos: playlist.videos.filter(v => v.id.videoId !== videoId) }
+          : playlist
+      )
+    );
   };
 
-  const removeFromPlaylist = async (playlistId: string, videoId: string) => {
-    try {
-      await videoDatabase.initialize();
-      await videoDatabase.removeVideoFromPlaylist(parseInt(playlistId), videoId);
-      await loadPlaylists(); // Refresh the list
-    } catch (error) {
-      console.error('Error removing video from playlist:', error);
-    }
+  const deletePlaylist = (playlistId: string) => {
+    setPlaylists(prev => prev.filter(playlist => playlist.id !== playlistId));
   };
 
-  const deletePlaylist = async (playlistId: string) => {
-    try {
-      await videoDatabase.initialize();
-      await videoDatabase.deletePlaylist(parseInt(playlistId));
-      await loadPlaylists(); // Refresh the list
-    } catch (error) {
-      console.error('Error deleting playlist:', error);
-    }
-  };
-
-  const markAsWatched = async (playlistId: string, videoId: string, watched: boolean = true) => {
-    try {
-      await videoDatabase.initialize();
-      await videoDatabase.markVideoAsWatched(parseInt(playlistId), videoId, watched);
-      await loadPlaylists(); // Refresh the list
-    } catch (error) {
-      console.error('Error marking video as watched:', error);
-    }
+  const markAsWatched = (playlistId: string, videoId: string, watched: boolean = true) => {
+    setPlaylists(prev =>
+      prev.map(playlist => {
+        if (playlist.id === playlistId) {
+          const newWatchedVideos = new Set(playlist.watchedVideos);
+          if (watched) {
+            newWatchedVideos.add(videoId);
+          } else {
+            newWatchedVideos.delete(videoId);
+          }
+          return { ...playlist, watchedVideos: newWatchedVideos };
+        }
+        return playlist;
+      })
+    );
   };
 
   return {
@@ -82,6 +66,6 @@ export function usePlaylistData() {
     removeFromPlaylist,
     deletePlaylist,
     markAsWatched,
-    refreshPlaylists: loadPlaylists
+    refreshPlaylists: () => {} // No-op since we're using localStorage
   };
 }

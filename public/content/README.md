@@ -2,63 +2,96 @@
 
 This directory contains the hierarchical content structure for the video streaming application.
 
-## Structure
+## Adding Your Content
+
+To add new content to the app, simply place JSON files in this directory structure:
 
 ```
-content/
-├── group1/
-│   ├── subgroup1.json
-│   ├── subgroup2.json
-│   └── nested-group/
-│       ├── nested-subgroup1.json
-│       └── nested-subgroup2.json
-├── group2/
-│   ├── subgroup1.json
-│   └── subgroup2.json
-└── index.json (optional)
+public/content/
+├── kids/
+│   └── kids_populer.json (existing)
+├── your-category/
+│   ├── your-content1.json
+│   └── your-content2.json
+├── movies/
+│   ├── action.json
+│   └── comedy.json
+└── music/
+    ├── pop.json
+    └── rock.json
 ```
 
-## File Format
+## JSON File Format
 
-Each JSON file should contain a subgroup object with the following structure:
+Each JSON file should contain an array with group objects. Here's the structure:
+
+```json
+[
+  {
+    "name": "Group Name",
+    "subgroups": [
+      {
+        "name": "internal-name",
+        "viewName": "Display Name for Users",
+        "channelId": "optional-youtube-channel-id",
+        "videos": [
+          {
+            "id": {
+              "videoId": "youtube-video-id"
+            },
+            "snippet": {
+              "title": "Video Title",
+              "channelTitle": "Channel Name",
+              "duration": "PT5M30S",
+              "uploadDate": "2023-01-01T00:00:00Z",
+              "thumbnails": {
+                "high": {
+                  "url": "https://i.ytimg.com/vi/VIDEO_ID/maxresdefault.jpg"
+                }
+              }
+            }
+          }
+        ],
+        "subgroups": []
+      }
+    ]
+  }
+]
+```
+
+## How to Add Your Content
+
+1. **Create a folder** for your content category (e.g., `movies`, `music`, `tutorials`)
+2. **Add JSON files** following the format above
+3. **Restart the app** - The content will be automatically loaded
+4. **No code changes needed** - Just add your JSON files and they'll appear in the navigation
+
+## Nested Categories
+
+You can create nested categories by adding `subgroups` within subgroups:
 
 ```json
 {
-  "name": "subgroup-internal-name",
-  "viewName": "Display Name for Users",
-  "channelId": "optional-channel-id",
-  "videos": [
+  "name": "internal-name",
+  "viewName": "Parent Category",
+  "channelId": "",
+  "videos": [],
+  "subgroups": [
     {
-      "id": {
-        "videoId": "youtube-video-id"
-      },
-      "snippet": {
-        "title": "Video Title",
-        "channelTitle": "Channel Name",
-        "duration": "PT5M30S",
-        "uploadDate": "2023-01-01T00:00:00Z",
-        "thumbnails": {
-          "high": {
-            "url": "https://i.ytimg.com/vi/VIDEO_ID/maxresdefault.jpg"
-          }
-        }
-      }
+      "name": "child-category",
+      "viewName": "Child Category",
+      "channelId": "",
+      "videos": [...],
+      "subgroups": []
     }
-  ],
-  "subgroups": []
+  ]
 }
 ```
 
-## Adding Your Content
+## Tips
 
-1. Create folders for each main group
-2. Add JSON files for each subgroup within those folders
-3. Use nested folders for hierarchical organization
-4. The application will automatically discover and load the structure
-
-## Notes
-
-- Folder names become group names in the navigation
-- JSON file names become subgroup identifiers
-- Use `viewName` property for user-friendly display names
-- The system supports unlimited nesting levels
+- Use descriptive folder names for better organization
+- Keep video data up to date with proper thumbnails and metadata
+- Use meaningful `viewName` values for user-friendly navigation
+- The app supports unlimited nesting levels
+- File names don't matter - only the content structure does

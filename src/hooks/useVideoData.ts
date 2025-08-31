@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Group } from '../types';
-import { videoDatabase } from '../database/database';
+import { loadAllContent } from '../utils/contentLoader';
 
 export function useVideoData() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -13,11 +13,8 @@ export function useVideoData() {
         setLoading(true);
         setError(null);
 
-        console.log('Initializing database...');
-        await videoDatabase.initialize();
-        
-        console.log('Loading groups from database...');
-        const allGroups = await videoDatabase.getAllGroups();
+        console.log('Loading all content from JSON files...');
+        const allGroups = await loadAllContent();
         console.log('Loaded groups:', allGroups);
         
         setGroups(allGroups);
