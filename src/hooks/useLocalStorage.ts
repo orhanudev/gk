@@ -11,6 +11,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
           return parsed.map((playlist: any) => ({
             ...playlist,
             name: typeof playlist.name === 'string' ? playlist.name : 'Unnamed Playlist',
+            videos: Array.isArray(playlist.videos) ? playlist.videos : [],
             watchedVideos: new Set(playlist.watchedVideos || []),
             currentVideoIndex: playlist.currentVideoIndex || 0
           }));
@@ -19,7 +20,8 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
           return {
             ...parsed,
-            name: typeof parsed.name === 'string' ? parsed.name : 'Unnamed Playlist'
+            name: typeof parsed.name === 'string' ? parsed.name : 'Unnamed Playlist',
+            videos: Array.isArray(parsed.videos) ? parsed.videos : []
           };
         }
         return parsed;
