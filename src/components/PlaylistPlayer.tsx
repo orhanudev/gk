@@ -247,7 +247,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   };
 
   const currentVideo = playlist.videos[currentVideoIndex];
-  const currentVideoId = getVideoId(currentVideo);
+  const currentVideoId = currentVideo ? getVideoId(currentVideo) : '';
   
   // Create embed URL with autoplay parameters - use currentVideoIndex as key to force reload
   const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
@@ -466,11 +466,11 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
               <button
                 onClick={() => toggleWatched(currentVideoId)}
                 className={`rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'} ${
-                  watchedVideos.has(currentVideoId)
+                  currentVideoId && watchedVideos.has(currentVideoId)
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
                 }`}
-                title={watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+                title={currentVideoId && watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
               >
                 <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
               </button>
