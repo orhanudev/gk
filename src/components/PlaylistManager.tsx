@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Trash2, Plus, Video, Clock, Check } from 'lucide-react';
+import { Play, Trash2, Plus, Video, Clock, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { Video as VideoType } from '../types';
 
 interface Playlist {
@@ -31,6 +31,7 @@ export function PlaylistManager({
 }: PlaylistManagerProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [expandedPlaylists, setExpandedPlaylists] = useState<Set<string>>(new Set());
 
   const handleCreatePlaylist = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +40,16 @@ export function PlaylistManager({
       setNewPlaylistName('');
       setShowCreateForm(false);
     }
+  };
+
+  const togglePlaylistExpansion = (playlistId: string) => {
+    const newExpanded = new Set(expandedPlaylists);
+    if (newExpanded.has(playlistId)) {
+      newExpanded.delete(playlistId);
+    } else {
+      newExpanded.add(playlistId);
+    }
+    setExpandedPlaylists(newExpanded);
   };
 
   const handlePlayVideo = (video: VideoType) => {
@@ -105,9 +116,19 @@ export function PlaylistManager({
         <div className="grid gap-6">
           {playlists.map((playlist) => (
             <div key={playlist.id} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Play className="w-6 h-6 text-purple-400" />
+                  <button
+                    onClick={() => togglePlaylistExpansion(playlist.id)}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {expandedPlaylists.has(playlist.id) ? (
+                      <ChevronDown className="w-5 h-5" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5" />
+                    )}
+                  </button>
+                  <Play className="w-5 h-5 text-purple-400" />
                   <div>
                     <h3 className="text-xl font-semibold text-white">{playlist.name}</h3>
                     <p className="text-gray-400 text-sm">
@@ -132,42 +153,38 @@ export function PlaylistManager({
                 </div>
               </div>
 
-              {playlist.videos.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {playlist.videos.slice(0, 8).map((video) => {
+              {playlist.videos.length > 0 && expandedPlaylists.has(playlist.id) && (
+                <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+                  {playlist.videos.map((video, index) => {
                     const isVideoWatched = playlist.watchedVideos?.has(video.id.videoId || video.id);
                     const videoId = video.id.videoId || video.id;
                     return (
                       <div
                         key={videoId}
-                        className="group relative bg-gray-700 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors cursor-pointer"
+                        className="group flex items-center bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer"
                         onClick={() => handlePlayVideo(video)}
                       >
-                        <div className="relative">
-                          <img
-                            src={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails.high.url}
-                            alt={video.snippet.title}
-                            className="w-full h-24 object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
-                            <Play className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                            {index + 1}
                           </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-white text-sm font-medium line-clamp-2 group-hover:text-purple-300 transition-colors">
+                              {video.snippet.title}
+                            </h4>
+                            <p className="text-gray-400 text-xs mt-1 truncate">
+                              {video.snippet.channelTitle}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
                           {isVideoWatched && (
-                            <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
+                            <div className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
                               <Check className="w-3 h-3 mr-1" />
                               İzlendi
                             </div>
                           )}
-                        </div>
-                        <div className="p-3">
-                          <h4 className="text-white text-sm font-medium line-clamp-2 mb-1">
-                            {video.snippet.title}
-                          </h4>
-                          <p className="text-gray-400 text-xs">
-                            {video.snippet.channelTitle}
-                          </p>
-                        </div>
-                        <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -196,14 +213,6 @@ export function PlaylistManager({
                       </div>
                     );
                   })}
-                  {playlist.videos.length > 8 && (
-                    <div className="bg-gray-700 rounded-lg p-4 flex items-center justify-center">
-                      <div className="text-center text-gray-400">
-                        <Video className="w-6 h-6 mx-auto mb-2" />
-                        <p className="text-sm">+{playlist.videos.length - 8} video daha</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
