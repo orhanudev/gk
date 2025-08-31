@@ -105,7 +105,7 @@ export function Navigation({
       <div key={fullPath} className="ml-4">
         <div
           className={`flex items-center py-2 px-3 rounded-lg cursor-pointer transition-all duration-200 ${
-            currentPath.some(item => item.path === fullPath)
+            currentPath.length > 0 && currentPath[currentPath.length - 1].path === fullPath
               ? 'bg-purple-600 text-white'
               : 'text-gray-300 hover:bg-gray-700'
           }`}
@@ -300,7 +300,7 @@ export function Navigation({
                 {isExpanded ? <FolderOpen className="w-5 h-5 mr-2" /> : <Folder className="w-5 h-5 mr-2" />}
                 <span className={`font-medium ${
                   currentPath.length > 0 && currentPath[0].name === group.name
-                    ? 'text-purple-300'
+                    ? currentPath.length === 1 ? 'text-purple-300' : 'text-gray-300'
                     : ''
                 }`}>{group.name}</span>
                 <span className="ml-auto text-xs text-gray-400">
