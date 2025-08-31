@@ -45,6 +45,9 @@ export default function App() {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
+  // Handle deep linking for shared videos
+  useDeepLink({ onPlayVideo: setCurrentVideo });
+
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
 

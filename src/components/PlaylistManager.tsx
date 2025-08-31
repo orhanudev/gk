@@ -240,16 +240,40 @@ export function PlaylistManager({
                               İzlendi
                             </div>
                           )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              shareVideo(video);
-                            }}
-                            className="text-gray-400 hover:text-white transition-colors"
-                            title="Paylaş"
-                          >
-                            <Share2 className="w-4 h-4" />
-                          </button>
+                          <div className="relative group">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                shareVideo(video, true);
+                              }}
+                              className="text-gray-400 hover:text-white transition-colors"
+                              title="GK'da Paylaş"
+                            >
+                              <Share2 className="w-4 h-4" />
+                            </button>
+                            
+                            {/* Share Options Dropdown */}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-600 rounded-lg shadow-lg p-2 whitespace-nowrap z-10">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  shareVideo(video, true);
+                                }}
+                                className="block w-full text-left px-3 py-1 text-white hover:bg-gray-500 rounded text-xs"
+                              >
+                                GK'da Paylaş
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  shareVideo(video, false);
+                                }}
+                                className="block w-full text-left px-3 py-1 text-white hover:bg-gray-500 rounded text-xs"
+                              >
+                                YouTube'da Paylaş
+                              </button>
+                            </div>
+                          </div>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
