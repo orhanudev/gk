@@ -1,4 +1,25 @@
 [
-  "/content/Çocuk/kids_populer.json",
-  "/content/Yetişkin/namaz.json"
+  "/content/Yetişkin/tevhid.json",
+  "/content/Yetişkin/kuran.json",
+  "/content/Yetişkin/namaz.json",
+  "/content/Yetişkin/oruc.json",
+  "/content/Yetişkin/hac.json",
+  "/content/Yetişkin/efendimiz.json",
+  "/content/Yetişkin/bamteli.json",
+  "/content/Yetişkin/hutbeler.json",
+  "/content/Yetişkin/melekut.json",
+  "/content/Yetişkin/olum.json",
+  "/content/Yetişkin/prensipler.json",
+  "/content/Yetişkin/soru-cevap.json",
+
+  "/content/Çocuk/kids_rabbim.json",
+  "/content/Çocuk/kids_kuran.json",
+  "/content/Çocuk/kids_efendimiz.json",
+  "/content/Çocuk/kids_peygamberler.json",
+  "/content/Çocuk/kids_sahabeler.json",
+  "/content/Çocuk/kids_ilmihal.json",
+  "/content/Çocuk/kids_kainat_kitabi.json",
+  "/content/Çocuk/kids_ramazan.json",
+  "/content/Çocuk/kids_hikayeler.json",
+  "/content/Çocuk/kids_muzik.json"
 ]

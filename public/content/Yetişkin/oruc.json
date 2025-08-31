@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Oruç",
+    "subgroups": [
+      {
+        "name": "Oruç/Oruç (Vaazlar)", "viewName": "Oruç (Vaazlar)", "channelId": "CinarMedya",
+        "videos":
+          [
+            { "id": { "videoId": "pkUkCExh19g" }, "snippet": { "title": "M. Fethullah Gülen | Oruç #1", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/pkUkCExh19g/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "slv3Vy7ilAA" }, "snippet": { "title": "M. Fethullah Gülen | Oruç #2", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/slv3Vy7ilAA/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "MkqM08Bmmq4" }, "snippet": { "title": "M. Fethullah Gülen | Oruç #3", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/MkqM08Bmmq4/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "i2H_CgdCfqY" }, "snippet": { "title": "M. Fethullah Gülen | Oruç #4", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/i2H_CgdCfqY/maxresdefault.jpg" } } } }
+          ]
+      }
+    ]
+  }
+]

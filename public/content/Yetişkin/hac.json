@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Hac",
+    "subgroups": [
+      {
+        "name": "Hac/Hac (Vaazlar)", "viewName": "Hac (Vaazlar)", "channelId": "CinarMedya",
+        "videos":
+          [
+            { "id": { "videoId": "LQnu2hlBUlc" }, "snippet": { "title": "M. Fethullah Gülen | Hac #1", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT3651S", "uploadDate": "2019-07-24T12:27:46-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/LQnu2hlBUlc/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "EiRt923rLPA" }, "snippet": { "title": "M. Fethullah Gülen | Hac #2", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT3631S", "uploadDate": "2019-07-31T11:00:05-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/EiRt923rLPA/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "8naKmdlUxSo" }, "snippet": { "title": "M. Fethullah Gülen | Hac #3", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT3614S", "uploadDate": "2019-08-07T11:27:45-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/8naKmdlUxSo/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "G_doNgcVIOY" }, "snippet": { "title": "M. Fethullah Gülen | Hac #4", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT3608S", "uploadDate": "2019-08-14T11:00:06-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/G_doNgcVIOY/maxresdefault.jpg" } } } }
+         ]
+      },
+      {
+        "name": "Hac/Mukaddes Yolculuk: HAC", "viewName": "Mukaddes Yolculuk: HAC", "channelId": "CinarMedya",
+        "videos":
+          [
+            { "id": { "videoId": "YTLR4RVilFY" }, "snippet": { "title": "M. Fethullah Gülen | Mukaddes Yolculuk: HAC #1 (Sadıkların Şiarı)", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT1302S", "uploadDate": "2019-07-26T11:00:03-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/YTLR4RVilFY/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "fFyhOAEnHrY" }, "snippet": { "title": "M. Fethullah Gülen | Mukaddes Yolculuk: HAC #2 (Peygamber Sevgisi ve Vazife Şuuru)", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT880S", "uploadDate": "2019-08-02T11:48:10-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/fFyhOAEnHrY/maxresdefault.jpg" } } } },
+            { "id": { "videoId": "Yr2wVdTvxMA" }, "snippet": { "title": "M. Fethullah Gülen | Mukaddes Yolculuk: HAC #3 (Huzurdan Gelen Davet)", "channelId": "CinarMedya", "channelTitle": "Çınar Medya", "duration": "PT963S", "uploadDate": "2019-08-09T14:42:55-07:00", "thumbnails": { "high": { "url": "https://i.ytimg.com/vi/Yr2wVdTvxMA/maxresdefault.jpg" } } } }
+          ]
+      }
+    ]
+  }
+]
