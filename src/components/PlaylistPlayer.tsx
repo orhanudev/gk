@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, SkipBack, SkipForward, Check, List, Maximize2, Minimize2, Share2 } from 'lucide-react';
+import { X, Play, SkipBack, SkipForward, Check, List, Maximize2, Minimize2, Share2, Repeat, Shuffle } from 'lucide-react';
 import { Playlist, Video } from '../types';
 
 interface PlaylistPlayerProps {
@@ -40,6 +40,9 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [autoplay, setAutoplay] = useState(true);
+  const [shuffleMode, setShuffleMode] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
 
   // Check for mobile screen size
   useEffect(() => {
@@ -99,7 +102,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   const currentVideo = playlist.videos[currentVideoIndex];
   const currentVideoId = getVideoId(currentVideo);
-  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1`;
+  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
 
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
@@ -173,6 +176,46 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     onUpdatePlaylist(updatedPlaylist);
   };
 
+  const handleVideoEnd = () => {
+    if (autoplay) {
+      if (shuffleMode) {
+        // Random next video
+        const availableIndices = playlist.videos
+          .map((_, index) => index)
+          .filter(index => index !== currentVideoIndex);
+        
+        if (availableIndices.length > 0) {
+          const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+          handleVideoSelect(randomIndex);
+        }
+      } else {
+        // Sequential play
+        if (currentVideoIndex < playlist.videos.length - 1) {
+          handleNext();
+        }
+      }
+    }
+  };
+
+  // Listen for video end events
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'video-ended') {
+          handleVideoEnd();
+        }
+      } catch (error) {
+        // Ignore parsing errors
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [autoplay, shuffleMode, currentVideoIndex, playlist]);
+
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
@@ -212,13 +255,13 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
         {/* Playlist Controls */}
         <div className={`border-b border-gray-700 ${isMobile ? 'p-1' : 'p-4'}`}>
-          <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center justify-center space-x-2 mb-3">
             <button
               onClick={handlePrevious}
               disabled={currentVideoIndex === 0}
-              className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-2 rounded-lg hover:bg-gray-700"
+              className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-1.5 rounded-lg hover:bg-gray-700"
             >
-              <SkipBack className="w-5 h-5" />
+              <SkipBack className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
             </button>
             
             <div className={`bg-purple-600 text-white rounded-lg flex items-center space-x-2 ${isMobile ? 'px-3 py-2' : 'px-6 py-3'}`}>
@@ -229,9 +272,38 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             <button
               onClick={handleNext}
               disabled={currentVideoIndex === playlist.videos.length - 1}
-              className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-2 rounded-lg hover:bg-gray-700"
+              className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-1.5 rounded-lg hover:bg-gray-700"
             >
-              <SkipForward className="w-5 h-5" />
+              <SkipForward className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+            </button>
+          </div>
+          
+          {/* Autoplay Controls */}
+          <div className="flex items-center justify-center space-x-2">
+            <button
+              onClick={() => setAutoplay(!autoplay)}
+              className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors text-xs ${
+                autoplay
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
+              }`}
+              title={autoplay ? 'Otomatik oynatmayı kapat' : 'Otomatik oynatmayı aç'}
+            >
+              <Repeat className="w-3 h-3" />
+              <span>Otomatik</span>
+            </button>
+            
+            <button
+              onClick={() => setShuffleMode(!shuffleMode)}
+              className={`flex items-center space-x-1 px-2 py-1 rounded-lg transition-colors text-xs ${
+                shuffleMode
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
+              }`}
+              title={shuffleMode ? 'Sıralı oynatma' : 'Karışık oynatma'}
+            >
+              <Shuffle className="w-3 h-3" />
+              <span>{shuffleMode ? 'Karışık' : 'Sıralı'}</span>
             </button>
           </div>
         </div>
