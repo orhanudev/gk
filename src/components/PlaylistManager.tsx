@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Trash2, Plus, Video, Clock, Check, ChevronDown, ChevronRight, Download } from 'lucide-react';
+import { Play, Trash2, Plus, Video, Clock, Check, ChevronDown, ChevronRight, Download, Share2 } from 'lucide-react';
 import { Video as VideoType } from '../types';
 import { ImportPlaylistModal } from './ImportPlaylistModal';
 
@@ -21,6 +21,33 @@ interface PlaylistManagerProps {
   onToggleWatched: (playlistId: string, videoId: string) => void;
   onImportPlaylist?: (videos: VideoType[], title: string) => void;
 }
+
+const shareVideo = async (video: VideoType) => {
+  const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+  const shareData = {
+    title: video.snippet.title,
+    text: `${video.snippet.title} - ${video.snippet.channelTitle}`,
+    url: videoUrl
+  };
+
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      await navigator.clipboard.writeText(videoUrl);
+      alert('Video linki panoya kopyalandı!');
+    }
+  } catch (error) {
+    console.error('Error sharing:', error);
+    try {
+      await navigator.clipboard.writeText(videoUrl);
+      alert('Video linki panoya kopyalandı!');
+    } catch (clipboardError) {
+      console.error('Clipboard error:', clipboardError);
+      prompt('Video linkini kopyalayın:', videoUrl);
+    }
+  }
+};
 
 export function PlaylistManager({
   playlists,
@@ -207,6 +234,16 @@ export function PlaylistManager({
                               İzlendi
                             </div>
                           )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              shareVideo(video);
+                            }}
+                            className="text-gray-400 hover:text-white transition-colors"
+                            title="Paylaş"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

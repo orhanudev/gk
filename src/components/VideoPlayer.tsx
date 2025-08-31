@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Maximize2, Minimize2, Play, Pause, Volume2, VolumeX, List } from 'lucide-react';
+import { X, Maximize2, Minimize2, Play, Pause, Volume2, VolumeX, List, Share2 } from 'lucide-react';
 import { Video } from '../types';
 
 interface VideoPlayerProps {
@@ -7,6 +7,34 @@ interface VideoPlayerProps {
   onClose: () => void;
   onAddToPlaylist?: (video: Video) => void;
 }
+
+const shareVideo = async (video: Video) => {
+  const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+  const shareData = {
+    title: video.snippet.title,
+    text: `${video.snippet.title} - ${video.snippet.channelTitle}`,
+    url: videoUrl
+  };
+
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(videoUrl);
+      alert('Video linki panoya kopyalandı!');
+    }
+  } catch (error) {
+    console.error('Error sharing:', error);
+    try {
+      await navigator.clipboard.writeText(videoUrl);
+      alert('Video linki panoya kopyalandı!');
+    } catch (clipboardError) {
+      console.error('Clipboard error:', clipboardError);
+      prompt('Video linkini kopyalayın:', videoUrl);
+    }
+  }
+};
 
 export function VideoPlayer({ video, onClose, onAddToPlaylist }: VideoPlayerProps) {
 
@@ -53,6 +81,13 @@ export function VideoPlayer({ video, onClose, onAddToPlaylist }: VideoPlayerProp
                 <List className="w-5 h-5" />
               </button>
             )}
+            <button
+              onClick={() => shareVideo(video)}
+              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 mr-2"
+              title="Paylaş"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { List, Play, Check } from 'lucide-react';
+import { List, Play, Check, Share2 } from 'lucide-react';
 import { Video } from '../types';
 import { formatDuration } from '../utils/videoUtils';
 
@@ -13,6 +13,37 @@ interface VideoCardProps {
   isSelected?: boolean;
   onToggleSelection?: (videoId: string) => void;
 }
+
+const shareVideo = async (video: Video) => {
+  const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
+  const shareData = {
+    title: video.snippet.title,
+    text: `${video.snippet.title} - ${video.snippet.channelTitle}`,
+    url: videoUrl
+  };
+
+  try {
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      await navigator.share(shareData);
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(videoUrl);
+      // Show a temporary notification (you could enhance this with a toast)
+      alert('Video linki panoya kopyalandı!');
+    }
+  } catch (error) {
+    console.error('Error sharing:', error);
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(videoUrl);
+      alert('Video linki panoya kopyalandı!');
+    } catch (clipboardError) {
+      console.error('Clipboard error:', clipboardError);
+      // Final fallback: show URL in prompt
+      prompt('Video linkini kopyalayın:', videoUrl);
+    }
+  }
+};
 
 export function VideoCard({ 
   video, 
@@ -143,23 +174,43 @@ export function VideoCard({
             <span>İzle</span>
           </button>
           
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (typeof onAddToPlaylist === 'function' && !isSelectionMode) {
-                onAddToPlaylist(video);
-              }
-            }}
-            className={`transition-colors ${
-              isSelectionMode 
-                ? 'text-gray-600 cursor-not-allowed' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-            title="Listeye ekle"
-            disabled={isSelectionMode}
-          >
-            <List className="w-4 h-4" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isSelectionMode) {
+                  shareVideo(video);
+                }
+              }}
+              className={`transition-colors ${
+                isSelectionMode 
+                  ? 'text-gray-600 cursor-not-allowed' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Paylaş"
+              disabled={isSelectionMode}
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (typeof onAddToPlaylist === 'function' && !isSelectionMode) {
+                  onAddToPlaylist(video);
+                }
+              }}
+              className={`transition-colors ${
+                isSelectionMode 
+                  ? 'text-gray-600 cursor-not-allowed' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+              title="Listeye ekle"
+              disabled={isSelectionMode}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
           
           {onToggleWatched && (
             <button
