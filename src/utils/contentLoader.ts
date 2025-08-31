@@ -1,30 +1,22 @@
 import { Group, Subgroup } from '../types';
 
-// Completely dynamic content loader with zero hardcoding
-
 async function loadJsonFile(path: string): Promise<any[]> {
   try {
-    console.log(`Attempting to load: ${path}`);
+    console.log(`Loading: ${path}`);
     const response = await fetch(path);
     
     if (!response.ok) {
-      console.log(`File not found: ${path} (${response.status})`);
-      return [];
-    }
-    
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      console.warn(`${path} is not a JSON file (content-type: ${contentType})`);
+      console.log(`File not found: ${path}`);
       return [];
     }
     
     const data = await response.json();
     if (!Array.isArray(data)) {
-      console.warn(`Invalid data format in ${path}: expected array, got ${typeof data}`);
+      console.warn(`Invalid data format in ${path}`);
       return [];
     }
     
-    console.log(`Successfully loaded ${path} with ${data.length} items`);
+    console.log(`Loaded ${path} with ${data.length} items`);
     return data;
   } catch (error) {
     console.error(`Error loading ${path}:`, error);
@@ -32,119 +24,130 @@ async function loadJsonFile(path: string): Promise<any[]> {
   }
 }
 
-// Use a manifest file approach - create a manifest.json that lists all available content
-async function loadContentManifest(): Promise<{folders: string[], files: string[]}> {
+// Try to discover what content actually exists
+async function discoverContent(): Promise<{folders: string[], files: string[]}> {
+  const folders: string[] = [];
+  const files: string[] = [];
+  
+  // Try to load a manifest file first
   try {
-    console.log('Attempting to load content manifest...');
-    const response = await fetch('/content/manifest.json');
-    
-    if (response.ok) {
-      const manifest = await response.json();
-      console.log('Loaded content manifest:', manifest);
+    const manifestResponse = await fetch('/content/manifest.json');
+    if (manifestResponse.ok) {
+      const manifest = await manifestResponse.json();
+      console.log('Found manifest:', manifest);
       return {
         folders: manifest.folders || [],
         files: manifest.files || []
       };
     }
   } catch (error) {
-    console.log('No manifest found, will try directory scanning');
+    console.log('No manifest file found');
   }
   
-  return { folders: [], files: [] };
-}
-
-// Fallback: try to infer structure from accessible files
-async function inferStructureFromKnownFiles(): Promise<{folders: string[], files: string[]}> {
-  // Since we want no hardcoding, we'll return empty structure
-  // The system should rely on manifest or directory scanning
-  return { folders: [], files: [] };
-}
-
-// Try to scan directories by attempting to access index files
-async function scanForDirectories(): Promise<{folders: string[], files: string[]}> {
-  const discoveredFolders: string[] = [];
-  const discoveredFiles: string[] = [];
-  
+  // Try to access the main content directory
   try {
-    // Try to get a directory listing from the content folder
     const contentResponse = await fetch('/content/');
-    
     if (contentResponse.ok) {
-      const contentText = await contentResponse.text();
+      const html = await contentResponse.text();
       
-      // Try to parse HTML directory listing
+      // Parse directory listing HTML to find folders and files
       const parser = new DOMParser();
-      const doc = parser.parseFromString(contentText, 'text/html');
-      
-      // Look for links that might be folders or files
+      const doc = parser.parseFromString(html, 'text/html');
       const links = doc.querySelectorAll('a[href]');
       
-      links.forEach(link => {
+      for (const link of links) {
         const href = link.getAttribute('href');
         if (href && href !== '../' && href !== './') {
-          const cleanHref = href.replace(/^\/+|\/+$/g, '');
+          const cleanPath = href.replace(/^\/+|\/+$/g, '');
           
           if (href.endsWith('/')) {
-            // This is likely a folder
-            discoveredFolders.push(cleanHref);
-            console.log(`Discovered folder: ${cleanHref}`);
+            // This is a folder
+            folders.push(cleanPath);
+            console.log(`Found folder: ${cleanPath}`);
+            
+            // Try to scan this subfolder
+            await scanSubfolder(cleanPath, folders, files);
           } else if (href.endsWith('.json')) {
             // This is a JSON file
-            discoveredFiles.push(cleanHref);
-            console.log(`Discovered JSON file: ${cleanHref}`);
+            files.push(cleanPath);
+            console.log(`Found file: ${cleanPath}`);
           }
         }
-      });
-      
-      // Recursively scan discovered folders
-      for (const folder of [...discoveredFolders]) {
-        await scanSubfolder(folder, discoveredFolders, discoveredFiles);
       }
     }
   } catch (error) {
-    console.warn('Could not scan directories:', error);
+    console.log('Could not scan content directory');
   }
   
-  return { folders: discoveredFolders, files: discoveredFiles };
-}
-
-async function scanSubfolder(
-  folderPath: string,
-  discoveredFolders: string[],
-  discoveredFiles: string[]
-): Promise<void> {
-  try {
-    const folderResponse = await fetch(`/content/${folderPath}/`);
+  // If we still have nothing, try some basic file checks
+  if (folders.length === 0 && files.length === 0) {
+    console.log('Trying basic file discovery...');
     
-    if (folderResponse.ok) {
-      const folderText = await folderResponse.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(folderText, 'text/html');
-      
-      const links = doc.querySelectorAll('a[href]');
-      
-      links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href && href !== '../' && href !== './') {
-          const cleanHref = href.replace(/^\/+|\/+$/g, '');
-          const fullPath = `${folderPath}/${cleanHref}`;
+    // Check if there are any files we can access by trying common patterns
+    const testPaths = [
+      'kids_populer.json',
+      'Çocuk/kids_populer.json',
+      'cocuk/kids_populer.json'
+    ];
+    
+    for (const testPath of testPaths) {
+      try {
+        const response = await fetch(`/content/${testPath}`, { method: 'HEAD' });
+        if (response.ok) {
+          files.push(testPath);
+          console.log(`Found accessible file: ${testPath}`);
           
-          if (href.endsWith('/')) {
-            if (!discoveredFolders.includes(fullPath)) {
-              discoveredFolders.push(fullPath);
-              console.log(`Discovered subfolder: ${fullPath}`);
-            }
-          } else if (href.endsWith('.json')) {
-            if (!discoveredFiles.includes(fullPath)) {
-              discoveredFiles.push(fullPath);
-              console.log(`Discovered JSON file: ${fullPath}`);
+          // Infer folder structure
+          const pathParts = testPath.split('/');
+          if (pathParts.length > 1) {
+            pathParts.pop(); // Remove filename
+            const folderPath = pathParts.join('/');
+            if (!folders.includes(folderPath)) {
+              folders.push(folderPath);
+              console.log(`Inferred folder: ${folderPath}`);
             }
           }
         }
-      });
+      } catch (error) {
+        // File doesn't exist, continue
+      }
+    }
+  }
+  
+  return { folders, files };
+}
+
+async function scanSubfolder(folderPath: string, folders: string[], files: string[]): Promise<void> {
+  try {
+    const response = await fetch(`/content/${folderPath}/`);
+    if (response.ok) {
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const links = doc.querySelectorAll('a[href]');
+      
+      for (const link of links) {
+        const href = link.getAttribute('href');
+        if (href && href !== '../' && href !== './') {
+          const cleanPath = href.replace(/^\/+|\/+$/g, '');
+          const fullPath = `${folderPath}/${cleanPath}`;
+          
+          if (href.endsWith('/')) {
+            if (!folders.includes(fullPath)) {
+              folders.push(fullPath);
+              console.log(`Found subfolder: ${fullPath}`);
+            }
+          } else if (href.endsWith('.json')) {
+            if (!files.includes(fullPath)) {
+              files.push(fullPath);
+              console.log(`Found file: ${fullPath}`);
+            }
+          }
+        }
+      }
     }
   } catch (error) {
-    console.warn(`Could not scan subfolder ${folderPath}:`, error);
+    console.log(`Could not scan subfolder: ${folderPath}`);
   }
 }
 
@@ -264,29 +267,12 @@ async function loadContentForSubgroup(subgroup: Subgroup, categoryName: string, 
 
 export async function loadAllContent(): Promise<Group[]> {
   try {
-    console.log('Starting completely dynamic content discovery...');
+    console.log('Starting dynamic content discovery...');
     
-    // First try to load from manifest
-    let { folders, files } = await loadContentManifest();
+    const { folders, files } = await discoverContent();
     
-    // If no manifest, try directory scanning
-    if (folders.length === 0 && files.length === 0) {
-      console.log('No manifest found, attempting directory scan...');
-      const scanned = await scanForDirectories();
-      folders = scanned.folders;
-      files = scanned.files;
-    }
-    
-    // If still nothing found, try to infer from any existing files
-    if (folders.length === 0 && files.length === 0) {
-      console.log('No content discovered via scanning, trying inference...');
-      const inferred = await inferStructureFromKnownFiles();
-      folders = inferred.folders;
-      files = inferred.files;
-    }
-    
-    console.log('Final discovered folders:', folders);
-    console.log('Final discovered files:', files);
+    console.log('Discovered folders:', folders);
+    console.log('Discovered files:', files);
     
     // Create groups from the discovered structure
     const groups = createGroupsFromStructure(folders, files);
@@ -299,13 +285,6 @@ export async function loadAllContent(): Promise<Group[]> {
     }
     
     console.log('Final groups structure:', groups);
-    
-    // If no groups were created, return empty structure
-    if (groups.length === 0) {
-      console.log('No content structure discovered');
-      return [];
-    }
-    
     return groups;
     
   } catch (error) {
