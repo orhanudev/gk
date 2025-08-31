@@ -4,6 +4,9 @@ export function normalizeSearchText(text: string): string {
   // Convert to lowercase and trim whitespace
   let normalized = text.toLowerCase().trim();
   
+  console.log('Original text:', text);
+  console.log('After lowercase:', normalized);
+  
   // Turkish to English character mapping
   const turkishToEnglish: { [key: string]: string } = {
     'ç': 'c',
@@ -37,12 +40,17 @@ export function normalizeSearchText(text: string): string {
     normalized = normalized.replace(new RegExp(turkishChar, 'g'), englishChar);
   });
   
+  console.log('After character conversion:', normalized);
   return normalized;
 }
 
 export function searchMatch(searchTerm: string, targetText: string): boolean {
   const normalizedSearch = normalizeSearchText(searchTerm);
   const normalizedTarget = normalizeSearchText(targetText);
+  
+  console.log('Search term normalized:', normalizedSearch);
+  console.log('Target text normalized:', normalizedTarget);
+  console.log('Match result:', normalizedTarget.includes(normalizedSearch));
   
   return normalizedTarget.includes(normalizedSearch);
 }
