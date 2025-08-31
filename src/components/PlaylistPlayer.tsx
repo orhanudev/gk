@@ -59,24 +59,44 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   // Initialize playlist data
   useEffect(() => {
     if (playlist && playlist.videos.length > 0) {
-      setCurrentVideoIndex(playlist.currentVideoIndex || 0);
+      // Ensure currentVideoIndex is within bounds after potential video deletions
+      const safeIndex = Math.min(playlist.currentVideoIndex || 0, playlist.videos.length - 1);
+      setCurrentVideoIndex(Math.max(0, safeIndex));
       setWatchedVideos(new Set(playlist.watchedVideos || []));
       
-      // Mark the first video as watched when playlist starts
-      const firstVideoId = playlist.videos[playlist.currentVideoIndex || 0]?.id?.videoId || 
-                          String(playlist.videos[playlist.currentVideoIndex || 0]?.id) || '';
+      // Mark the current video as watched when playlist starts
+      const currentVideo = playlist.videos[safeIndex];
+      if (!currentVideo) return; // Safety check
+      
+      const currentVideoId = currentVideo.id?.videoId || String(currentVideo.id) || '';
       const newWatchedVideos = new Set(playlist.watchedVideos || []);
-      newWatchedVideos.add(firstVideoId);
+      newWatchedVideos.add(currentVideoId);
       setWatchedVideos(newWatchedVideos);
       
       // Update the playlist immediately
       const updatedPlaylist = {
         ...playlist,
+        currentVideoIndex: safeIndex,
         watchedVideos: newWatchedVideos
       };
       onUpdatePlaylist(updatedPlaylist);
     }
-  }, [playlist, onUpdatePlaylist]);
+  }, [playlist?.id, playlist?.videos?.length, playlist?.currentVideoIndex, onUpdatePlaylist]);
+
+  // Additional safety check for currentVideo
+  useEffect(() => {
+    if (playlist && playlist.videos.length > 0) {
+      // If current index is out of bounds, reset to 0
+      if (currentVideoIndex >= playlist.videos.length) {
+        setCurrentVideoIndex(0);
+        const updatedPlaylist = {
+          ...playlist,
+          currentVideoIndex: 0
+        };
+        onUpdatePlaylist(updatedPlaylist);
+      }
+    }
+  }, [currentVideoIndex, playlist, onUpdatePlaylist]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -163,7 +183,18 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   }, [currentVideoIndex, autoplay, shuffleMode, playlist, watchedVideos, onUpdatePlaylist]);
 
   // Early return AFTER all hooks are declared
-  if (!playlist || !playlist.videos.length) return null;
+  if (!playlist || !playlist.videos || playlist.videos.length === 0) return null;
+
+  // Additional safety check for current video
+  if (currentVideoIndex >= playlist.videos.length) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-lg mb-4">Playlist güncelleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Helper functions defined after hooks and early return
   const getVideoId = (video: Video): string => {
@@ -247,6 +278,24 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   };
 
   const currentVideo = playlist.videos[currentVideoIndex];
+  
+  // Safety check for current video
+  if (!currentVideo) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-lg mb-4">Video yükleniyor...</p>
+          <button
+            onClick={onClose}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
+          >
+            Kapat
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   const currentVideoId = currentVideo ? getVideoId(currentVideo) : '';
   
   // Create embed URL with autoplay parameters - use currentVideoIndex as key to force reload
