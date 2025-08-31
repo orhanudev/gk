@@ -55,7 +55,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   if (!playlist || !playlist.videos.length) return null;
 
   const getVideoId = (video: Video): string => {
-    return video.id.videoId || video.id || '';
+    return video.id.videoId || String(video.id) || '';
   };
 
   const currentVideo = playlist.videos[currentVideoIndex];

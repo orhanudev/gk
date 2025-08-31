@@ -33,18 +33,18 @@ export function VideoGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
       {videos.map((video) => (
-        <div key={video.id.videoId || video.id} className="relative">
+        <div key={video.id.videoId || String(video.id)} className="relative">
           {isSelectionMode && (
             <div className="absolute top-2 left-2 z-10">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onToggleSelection) {
-                    onToggleSelection(video.id.videoId || video.id);
+                    onToggleSelection(video.id.videoId || String(video.id));
                   }
                 }}
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                  selectedVideos.has(video.id.videoId || video.id)
+                  selectedVideos.has(video.id.videoId || String(video.id))
                     ? 'bg-purple-600 border-purple-600 text-white'
                     : 'bg-gray-800 bg-opacity-80 border-gray-400 text-transparent hover:border-purple-400'
                 }`}
@@ -58,7 +58,7 @@ export function VideoGrid({
             onPlayVideo={isSelectionMode ? () => {} : onPlayVideo}
             onAddToPlaylist={onAddToPlaylist}
             isSelectionMode={isSelectionMode}
-            isSelected={selectedVideos.has(video.id.videoId || video.id)}
+            isSelected={selectedVideos.has(video.id.videoId || String(video.id))}
             onToggleSelection={onToggleSelection}
           />
         </div>

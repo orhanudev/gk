@@ -172,7 +172,7 @@ export default function App() {
     } else {
       const videosToUse = currentView === 'search' ? searchResults : currentVideos;
       const selectedVideoObjects = videosToUse.filter(video => 
-        selectedVideos.has(video.id.videoId || video.id)
+        selectedVideos.has(video.id.videoId || String(video.id))
       );
       createPlaylist(name, selectedVideoObjects);
     }
@@ -196,7 +196,7 @@ export default function App() {
     if (selectedVideos.size === videosToUse.length) {
       setSelectedVideos(new Set());
     } else {
-      const allVideoIds = videosToUse.map(video => video.id.videoId || video.id);
+      const allVideoIds = videosToUse.map(video => video.id.videoId || String(video.id));
       setSelectedVideos(new Set(allVideoIds));
     }
   };
