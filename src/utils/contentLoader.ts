@@ -6,281 +6,166 @@ async function loadJsonFile(path: string): Promise<any[]> {
     const response = await fetch(path);
     
     if (!response.ok) {
-      console.log(`File not found: ${path}`);
+      console.log(`File not found: ${path} (status: ${response.status})`);
       return [];
     }
     
-    // Check if response is actually JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      console.log(`Not a JSON file: ${path} (content-type: ${contentType})`);
+    const text = await response.text();
+    
+    // Check if it's HTML (directory listing) instead of JSON
+    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+      console.log(`Got HTML instead of JSON for: ${path}`);
       return [];
     }
     
-    const data = await response.json();
-    if (!Array.isArray(data)) {
-      console.warn(`Invalid data format in ${path}`);
+    try {
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) {
+        console.warn(`Invalid data format in ${path} - not an array`);
+        return [];
+      }
+      
+      console.log(`✅ Successfully loaded ${path} with ${data.length} items`);
+      return data;
+    } catch (parseError) {
+      console.error(`❌ JSON parse error for ${path}:`, parseError);
       return [];
     }
-    
-    console.log(`Loaded ${path} with ${data.length} items`);
-    return data;
   } catch (error) {
-    console.error(`Error loading ${path}:`, error);
+    console.error(`❌ Error loading ${path}:`, error);
     return [];
   }
 }
 
-async function scanDirectory(path: string): Promise<{folders: string[], files: string[]}> {
-  const folders: string[] = [];
-  const files: string[] = [];
-  
+async function loadManifest(): Promise<string[]> {
   try {
-    console.log(`🔍 Scanning directory: ${path}`);
-    const response = await fetch(path);
+    console.log('📋 Loading content manifest...');
+    const response = await fetch('/content/manifest.json');
     
     if (!response.ok) {
-      console.log(`❌ Cannot access directory: ${path} - Status: ${response.status}`);
-      return { folders, files };
+      console.log('❌ No manifest.json found');
+      return [];
     }
     
-    const html = await response.text();
-    console.log(`📄 Directory HTML length: ${html.length} characters`);
-    console.log(`📄 First 200 chars of HTML:`, html.substring(0, 200));
-    
-    // Parse directory listing HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const links = doc.querySelectorAll('a[href]');
-    console.log(`🔗 Found ${links.length} links in directory listing`);
-    
-    for (const link of links) {
-      const href = link.getAttribute('href');
-      console.log(`🔗 Processing link: ${href}`);
-      if (href && href !== '../' && href !== './') {
-        const cleanPath = href.replace(/^\/+|\/+$/g, '');
-        
-        if (href.endsWith('/')) {
-          // This is a folder
-          const folderName = cleanPath;
-          if (folderName && !folders.includes(folderName)) {
-            folders.push(folderName);
-            console.log(`📁 Found folder: ${folderName}`);
-          }
-        } else if (href.endsWith('.json')) {
-          // This is a JSON file
-          if (cleanPath && !files.includes(cleanPath)) {
-            files.push(cleanPath);
-            console.log(`📄 Found JSON file: ${cleanPath}`);
-          }
-        }
-      }
+    const manifest = await response.json();
+    if (!Array.isArray(manifest)) {
+      console.error('❌ Invalid manifest format - should be array of file paths');
+      return [];
     }
     
-    console.log(`✅ Scan complete for ${path}: ${folders.length} folders, ${files.length} files`);
+    console.log(`✅ Loaded manifest with ${manifest.length} files`);
+    return manifest;
   } catch (error) {
-    console.log(`❌ Could not scan directory: ${path}`, error);
+    console.error('❌ Error loading manifest:', error);
+    return [];
   }
-  
-  console.log(`📊 Final results for ${path}:`, { folders, files });
-  return { folders, files };
 }
 
-async function scanRecursively(basePath: string, relativePath: string = ''): Promise<{folders: string[], files: string[]}> {
-  const allFolders: string[] = [];
-  const allFiles: string[] = [];
-  
-  const fullPath = relativePath ? `${basePath}${relativePath}/` : basePath;
-  const { folders, files } = await scanDirectory(fullPath);
-  
-  // Add current level folders and files
-  folders.forEach(folder => {
-    const fullFolderPath = relativePath ? `${relativePath}/${folder}` : folder;
-    allFolders.push(fullFolderPath);
-  });
-  
-  files.forEach(file => {
-    const fullFilePath = relativePath ? `${relativePath}/${file}` : file;
-    allFiles.push(fullFilePath);
-  });
-  
-  // Recursively scan subfolders
-  for (const folder of folders) {
-    const subPath = relativePath ? `${relativePath}/${folder}` : folder;
-    const subResult = await scanRecursively(basePath, subPath);
-    allFolders.push(...subResult.folders);
-    allFiles.push(...subResult.files);
-  }
-  
-  return { folders: allFolders, files: allFiles };
-}
-
-function buildGroupStructure(folders: string[], files: string[]): Group[] {
+function buildGroupsFromFiles(filePaths: string[]): Group[] {
   const groups: Group[] = [];
+  const groupMap = new Map<string, Group>();
   
-  // Get all top-level categories
-  const topLevelCategories = new Set<string>();
+  console.log('🏗️ Building groups from file paths:', filePaths);
   
-  folders.forEach(folderPath => {
-    const parts = folderPath.split('/');
-    if (parts.length > 0 && parts[0]) {
-      topLevelCategories.add(parts[0]);
+  filePaths.forEach(filePath => {
+    // Remove /content/ prefix if present
+    const cleanPath = filePath.replace(/^\/content\//, '');
+    const pathParts = cleanPath.split('/');
+    
+    if (pathParts.length < 2) {
+      console.warn(`Invalid file path structure: ${filePath}`);
+      return;
     }
-  });
-  
-  files.forEach(filePath => {
-    const parts = filePath.split('/');
-    if (parts.length > 0 && parts[0]) {
-      topLevelCategories.add(parts[0]);
+    
+    const groupName = pathParts[0];
+    const fileName = pathParts[pathParts.length - 1].replace('.json', '');
+    
+    // Get or create group
+    let group = groupMap.get(groupName);
+    if (!group) {
+      group = {
+        name: groupName,
+        subgroups: []
+      };
+      groupMap.set(groupName, group);
+      groups.push(group);
     }
-  });
-  
-  // Create groups for each top-level category
-  topLevelCategories.forEach(categoryName => {
-    const group: Group = {
-      name: categoryName,
-      subgroups: []
+    
+    // Create subgroup for this file
+    const subgroup: Subgroup = {
+      name: fileName,
+      viewName: fileName,
+      channelId: '',
+      videos: [],
+      subgroups: [],
+      filePath: filePath
     };
     
-    // Build subgroup structure for this category
-    const categoryFolders = folders.filter(f => f.startsWith(`${categoryName}/`));
-    const categoryFiles = files.filter(f => f.startsWith(`${categoryName}/`));
-    
-    // Create subgroups from folder structure
-    const subgroupMap = new Map<string, Subgroup>();
-    
-    // Process folders
-    categoryFolders.forEach(folderPath => {
-      const relativePath = folderPath.substring(categoryName.length + 1);
-      const pathParts = relativePath.split('/');
-      
-      let currentPath = '';
-      let currentSubgroups = group.subgroups;
-      
-      pathParts.forEach((part, index) => {
-        currentPath = currentPath ? `${currentPath}/${part}` : part;
-        const fullPath = `${categoryName}/${currentPath}`;
-        
-        let existingSubgroup = currentSubgroups.find(sg => sg.name === part);
-        
-        if (!existingSubgroup) {
-          existingSubgroup = {
-            name: part,
-            viewName: part,
-            channelId: '',
-            videos: [],
-            subgroups: []
-          };
-          currentSubgroups.push(existingSubgroup);
-        }
-        
-        currentSubgroups = existingSubgroup.subgroups!;
-      });
-    });
-    
-    // Process files
-    categoryFiles.forEach(filePath => {
-      const relativePath = filePath.substring(categoryName.length + 1);
-      const pathParts = relativePath.split('/');
-      const fileName = pathParts.pop()?.replace('.json', '') || 'content';
-      
-      if (pathParts.length === 0) {
-        // File is directly in the category folder
-        let existingSubgroup = group.subgroups.find(sg => sg.name === fileName);
-        if (!existingSubgroup) {
-          existingSubgroup = {
-            name: fileName,
-            viewName: fileName,
-            channelId: '',
-            videos: [],
-            subgroups: []
-          };
-          group.subgroups.push(existingSubgroup);
-        }
-      } else {
-        // File is in a subfolder
-        let currentSubgroups = group.subgroups;
-        
-        pathParts.forEach(part => {
-          let existingSubgroup = currentSubgroups.find(sg => sg.name === part);
-          if (!existingSubgroup) {
-            existingSubgroup = {
-              name: part,
-              viewName: part,
-              channelId: '',
-              videos: [],
-              subgroups: []
-            };
-            currentSubgroups.push(existingSubgroup);
-          }
-          currentSubgroups = existingSubgroup.subgroups!;
-        });
-      }
-    });
-    
-    groups.push(group);
+    group.subgroups.push(subgroup);
   });
   
+  console.log(`✅ Built ${groups.length} groups:`, groups.map(g => ({ name: g.name, subgroups: g.subgroups.length })));
   return groups;
 }
 
-async function loadContentForSubgroup(subgroup: Subgroup, categoryName: string, files: string[]): Promise<void> {
-  // Find JSON files for this subgroup
-  const relevantFiles = files.filter(f => {
-    const relativePath = f.substring(categoryName.length + 1);
-    return relativePath.startsWith(`${subgroup.name}/`) || relativePath === `${subgroup.name}.json`;
-  });
+async function loadContentForGroups(groups: Group[]): Promise<void> {
+  console.log('📥 Loading content for all groups...');
   
-  for (const filePath of relevantFiles) {
-    const content = await loadJsonFile(`/content/${filePath}`);
-    content.forEach(item => {
-      if (item.subgroups && Array.isArray(item.subgroups)) {
-        subgroup.subgroups = subgroup.subgroups || [];
-        subgroup.subgroups.push(...item.subgroups);
+  for (const group of groups) {
+    console.log(`📥 Loading content for group: ${group.name}`);
+    
+    for (const subgroup of group.subgroups) {
+      if ((subgroup as any).filePath) {
+        console.log(`📥 Loading content for subgroup: ${subgroup.name} from ${(subgroup as any).filePath}`);
+        
+        const content = await loadJsonFile((subgroup as any).filePath);
+        
+        content.forEach(item => {
+          if (item.subgroups && Array.isArray(item.subgroups)) {
+            subgroup.subgroups = subgroup.subgroups || [];
+            subgroup.subgroups.push(...item.subgroups);
+          }
+          if (item.videos && Array.isArray(item.videos)) {
+            subgroup.videos = subgroup.videos || [];
+            subgroup.videos.push(...item.videos);
+          }
+        });
+        
+        // Clean up the temporary filePath property
+        delete (subgroup as any).filePath;
       }
-      if (item.videos && Array.isArray(item.videos)) {
-        subgroup.videos = subgroup.videos || [];
-        subgroup.videos.push(...item.videos);
-      }
-    });
+    }
   }
 }
 
 export async function loadAllContent(): Promise<Group[]> {
   try {
-    console.log('🚀 Starting completely dynamic content discovery...');
+    console.log('🚀 Starting manifest-based content loading...');
     
-    // Scan the entire content directory recursively
-    const { folders, files } = await scanRecursively('/content/');
+    // Load the manifest file
+    const filePaths = await loadManifest();
     
-    console.log('📁 Discovered folders:', folders);
-    console.log('📄 Discovered files:', files);
-    
-    if (folders.length === 0 && files.length === 0) {
-      console.log('❌ No content found in /content/ directory');
+    if (filePaths.length === 0) {
+      console.log('❌ No files found in manifest');
       return [];
     }
     
-    // Build group structure from discovered content
-    console.log('🏗️ Building group structure...');
-    const groups = buildGroupStructure(folders, files);
-    console.log('🏗️ Built groups:', groups.map(g => ({ name: g.name, subgroupCount: g.subgroups.length })));
+    // Build group structure from file paths
+    const groups = buildGroupsFromFiles(filePaths);
     
-    // Load actual content from discovered JSON files
-    console.log('📥 Loading content from JSON files...');
-    for (const group of groups) {
-      console.log(`📥 Loading content for group: ${group.name}`);
-      for (const subgroup of group.subgroups) {
-        console.log(`📥 Loading content for subgroup: ${subgroup.name}`);
-        await loadContentForSubgroup(subgroup, group.name, files);
-      }
+    if (groups.length === 0) {
+      console.log('❌ No groups could be built from manifest');
+      return [];
     }
     
-    console.log('✅ Final groups structure:', groups);
+    // Load actual content from the files
+    await loadContentForGroups(groups);
+    
+    console.log('✅ Content loading complete:', groups);
     return groups;
     
   } catch (error) {
-    console.error('❌ Error in dynamic content loading:', error);
+    console.error('❌ Error in content loading:', error);
     return [];
   }
 }
