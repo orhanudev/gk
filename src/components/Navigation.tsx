@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronRight, ChevronDown, Home, Folder, FolderOpen, Search, Youtube, X, List } from 'lucide-react';
 import { Group, Subgroup, NavigationItem } from '../types';
 
@@ -30,6 +30,32 @@ export function Navigation({
   isMobile = false
 }: NavigationProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const navRef = useRef<HTMLElement>(null);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    
+    if (isLeftSwipe && isMobile && onClose) {
+      onClose();
+    }
+  };
 
   const toggleGroup = (groupName: string) => {
     const newExpanded = new Set(expandedGroups);
@@ -119,7 +145,13 @@ export function Navigation({
   };
 
   return (
-    <nav className="bg-gray-800 w-80 md:w-80 p-4 overflow-y-auto h-screen flex flex-col">
+    <nav 
+      ref={navRef}
+      className="bg-gray-800 w-80 md:w-80 p-4 overflow-y-auto h-screen flex flex-col"
+      onTouchStart={isMobile ? onTouchStart : undefined}
+      onTouchMove={isMobile ? onTouchMove : undefined}
+      onTouchEnd={isMobile ? onTouchEnd : undefined}
+    >
       {/* Mobile Close Button */}
       {isMobile && onClose && (
         <div className="flex justify-end mb-4 md:hidden">
