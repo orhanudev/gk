@@ -178,8 +178,8 @@ export function PlaylistManager({
               {playlist.videos.length > 0 && expandedPlaylists.has(playlist.id) && (
                 <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
                   {playlist.videos.map((video, index) => {
-                    const isVideoWatched = playlist.watchedVideos?.has(video.id.videoId || video.id);
-                    const videoId = video.id.videoId || video.id;
+                    const videoId = video.id.videoId || String(video.id);
+                    const isVideoWatched = playlist.watchedVideos?.has(videoId);
                     return (
                       <div
                         key={videoId}
@@ -210,7 +210,7 @@ export function PlaylistManager({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onToggleWatched(playlist.id, videoId);
+                              onToggleWatched(playlist.id, String(videoId));
                             }}
                             className={`p-1 rounded transition-colors ${
                               isVideoWatched 
@@ -224,7 +224,7 @@ export function PlaylistManager({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onRemoveFromPlaylist(playlist.id, videoId);
+                              onRemoveFromPlaylist(playlist.id, String(videoId));
                             }}
                             className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors"
                             title="Listeden kaldır"
