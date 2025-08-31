@@ -59,36 +59,18 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist, onAddToPlaylistMo
       kind: 'youtube#video',
       etag: '',
       id: {
-        kind: 'youtube#video',
         videoId: videoId
       },
       snippet: {
-        publishedAt: new Date().toISOString(),
-        channelId: '',
-        title: details?.title || `Video: ${videoId}`,
-        description: '',
-        thumbnails: {
-          default: { url: `https://img.youtube.com/vi/${videoId}/default.jpg` },
-          medium: { url: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` },
-          high: { url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` }
-        },
+        title: details?.title || `YouTube Video`,
         channelTitle: details?.channelTitle || 'YouTube',
-        tags: [],
-        categoryId: '',
-        liveBroadcastContent: 'none',
-        defaultLanguage: '',
-        localized: {
-          title: details?.title || `Video: ${videoId}`,
-          description: ''
-        },
-        defaultAudioLanguage: ''
-      },
-      statistics: {
-        viewCount: '0',
-        likeCount: '0',
-        dislikeCount: '0',
-        favoriteCount: '0',
-        commentCount: '0'
+        duration: 'PT0S',
+        uploadDate: new Date().toISOString(),
+        thumbnails: {
+          high: {
+            url: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
+          }
+        }
       }
     };
   };
