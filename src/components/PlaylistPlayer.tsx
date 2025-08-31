@@ -464,6 +464,68 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                 )}
               </div>
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => shareVideo(currentVideo)}
+                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+                title="Paylaş"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+              
+              <button
+                onClick={() => toggleWatched(currentVideoId)}
+                className={`transition-colors p-2 rounded-lg hover:bg-gray-700 ${
+                  watchedVideos.has(currentVideoId)
+                    ? 'text-green-400 hover:text-green-300'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title={watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+              >
+                <Check className="w-5 h-5" />
+              </button>
+              
+              {onAddToPlaylistModal && (
+                <button
+                  onClick={() => onAddToPlaylistModal(currentVideo)}
+                  className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+                  title="Başka listeye ekle"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              )}
+              
+              <button
+                onClick={toggleFullscreen}
+                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+                title={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
+              >
+                {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+        {/* Video Controls (Bottom Bar) */}
+        <div className={`bg-gray-800 border-t border-gray-700 ${isMobile ? 'p-2' : 'p-4'}`}>
+          <div className="flex items-center justify-between">
+            <div className={`space-y-1 flex-1 min-w-0 ${isMobile ? 'mr-2' : 'mr-4'}`}>
+              <h3 className={`text-white font-semibold line-clamp-1 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                {currentVideo.snippet.title}
+              </h3>
+              <div className={`flex items-center text-gray-400 ${isMobile ? 'space-x-2 text-xs' : 'space-x-4 text-sm'}`}>
+                <span>{currentVideo.snippet.channelTitle}</span>
+                {currentVideo.snippet.uploadDate && (
+                  <span>
+                    {new Date(currentVideo.snippet.uploadDate).toLocaleDateString('tr-TR')}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
