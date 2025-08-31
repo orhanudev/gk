@@ -36,23 +36,27 @@ async function scanDirectory(path: string): Promise<{folders: string[], files: s
   const files: string[] = [];
   
   try {
-    console.log(`Scanning directory: ${path}`);
+    console.log(`🔍 Scanning directory: ${path}`);
     const response = await fetch(path);
     
     if (!response.ok) {
-      console.log(`Cannot access directory: ${path}`);
+      console.log(`❌ Cannot access directory: ${path} - Status: ${response.status}`);
       return { folders, files };
     }
     
     const html = await response.text();
+    console.log(`📄 Directory HTML length: ${html.length} characters`);
+    console.log(`📄 First 200 chars of HTML:`, html.substring(0, 200));
     
     // Parse directory listing HTML
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const links = doc.querySelectorAll('a[href]');
+    console.log(`🔗 Found ${links.length} links in directory listing`);
     
     for (const link of links) {
       const href = link.getAttribute('href');
+      console.log(`🔗 Processing link: ${href}`);
       if (href && href !== '../' && href !== './') {
         const cleanPath = href.replace(/^\/+|\/+$/g, '');
         
@@ -61,21 +65,24 @@ async function scanDirectory(path: string): Promise<{folders: string[], files: s
           const folderName = cleanPath;
           if (folderName && !folders.includes(folderName)) {
             folders.push(folderName);
-            console.log(`Found folder: ${folderName}`);
+            console.log(`📁 Found folder: ${folderName}`);
           }
         } else if (href.endsWith('.json')) {
           // This is a JSON file
           if (cleanPath && !files.includes(cleanPath)) {
             files.push(cleanPath);
-            console.log(`Found JSON file: ${cleanPath}`);
+            console.log(`📄 Found JSON file: ${cleanPath}`);
           }
         }
       }
     }
+    
+    console.log(`✅ Scan complete for ${path}: ${folders.length} folders, ${files.length} files`);
   } catch (error) {
-    console.log(`Could not scan directory: ${path}`, error);
+    console.log(`❌ Could not scan directory: ${path}`, error);
   }
   
+  console.log(`📊 Final results for ${path}:`, { folders, files });
   return { folders, files };
 }
 
@@ -241,34 +248,39 @@ async function loadContentForSubgroup(subgroup: Subgroup, categoryName: string, 
 
 export async function loadAllContent(): Promise<Group[]> {
   try {
-    console.log('Starting completely dynamic content discovery...');
+    console.log('🚀 Starting completely dynamic content discovery...');
     
     // Scan the entire content directory recursively
     const { folders, files } = await scanRecursively('/content/');
     
-    console.log('Discovered folders:', folders);
-    console.log('Discovered files:', files);
+    console.log('📁 Discovered folders:', folders);
+    console.log('📄 Discovered files:', files);
     
     if (folders.length === 0 && files.length === 0) {
-      console.log('No content found in /content/ directory');
+      console.log('❌ No content found in /content/ directory');
       return [];
     }
     
     // Build group structure from discovered content
+    console.log('🏗️ Building group structure...');
     const groups = buildGroupStructure(folders, files);
+    console.log('🏗️ Built groups:', groups.map(g => ({ name: g.name, subgroupCount: g.subgroups.length })));
     
     // Load actual content from discovered JSON files
+    console.log('📥 Loading content from JSON files...');
     for (const group of groups) {
+      console.log(`📥 Loading content for group: ${group.name}`);
       for (const subgroup of group.subgroups) {
+        console.log(`📥 Loading content for subgroup: ${subgroup.name}`);
         await loadContentForSubgroup(subgroup, group.name, files);
       }
     }
     
-    console.log('Final groups structure:', groups);
+    console.log('✅ Final groups structure:', groups);
     return groups;
     
   } catch (error) {
-    console.error('Error in dynamic content loading:', error);
+    console.error('❌ Error in dynamic content loading:', error);
     return [];
   }
 }
