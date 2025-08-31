@@ -56,7 +56,7 @@ export function PlaylistModal({
             </p>
           </div>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
             {playlists.length === 0 ? (
               <p className="text-gray-400 text-center py-4">
                 Henüz oynatma listesi yok
