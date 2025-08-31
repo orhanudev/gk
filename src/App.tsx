@@ -208,10 +208,21 @@ export default function App() {
               >
                 <List className="w-6 h-6" />
               </button>
-              <h1 className="text-white text-lg md:text-xl font-bold truncate">Video Player</h1>
             </div>
             
-            <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
+            <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1 justify-between">
+              <button
+                onClick={() => setCurrentView('videolink')}
+                className={`flex items-center px-3 py-2 rounded-lg transition-colors text-sm ${
+                  currentView === 'videolink'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
+                }`}
+              >
+                <Youtube className="w-4 h-4 mr-2" />
+                YT Link
+              </button>
+              
               <div className="relative hidden sm:block">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input

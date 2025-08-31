@@ -171,18 +171,6 @@ export function Navigation({
           <Search className="w-5 h-5 mr-3" />
           <span className="font-medium">YT Search</span>
         </button>
-        
-        <button
-          onClick={onShowVideoLink}
-          className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors mt-2 ${
-            isVideoLinkActive
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-300 hover:bg-gray-700'
-          }`}
-        >
-          <Youtube className="w-5 h-5 mr-3" />
-          <span className="font-medium">YT Link</span>
-        </button>
       </div>
 
       <div className="space-y-2 flex-1 overflow-y-auto">
