@@ -15,7 +15,6 @@ async function discoverContentFiles(): Promise<string[]> {
   // You can add your file paths here:
   const staticFiles = [
     '/content/kids/kids_populer.json',
-    '/content/kids/populer/afacanlar.json',
     // Add more nested files here as you create them:
     // '/content/kids/populer/other_series.json',
     // '/content/movies/action/superhero.json',
