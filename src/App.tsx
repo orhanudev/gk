@@ -254,7 +254,7 @@ export default function App() {
         <main className="flex-1 p-3 md:p-6 overflow-y-auto">
           {currentView === 'search' ? (
             <YouTubeSearch
-              onAddToPlaylist={setPlaylistModalVideo}
+              onAddToPlaylistModal={setPlaylistModalVideo}
               onPlayVideo={setCurrentVideo}
             />
           ) : currentView === 'videolink' ? (

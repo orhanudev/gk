@@ -5,12 +5,10 @@ import { VideoGrid } from './VideoGrid';
 import { Video } from '../types';
 
 interface YouTubeSearchProps {
-  onAddToPlaylist: (video: Video) => void;
-  onPlayVideo: (video: Video) => void;
   onAddToPlaylistModal: (video: Video) => void;
+  onPlayVideo: (video: Video) => void;
 }
 
-export function YouTubeSearch({ onAddToPlaylist, onPlayVideo, onAddToPlaylistModal }: YouTubeSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { searchResults, loading, error, searchVideos } = useYouTubeSearch();
 
