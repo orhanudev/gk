@@ -54,6 +54,11 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   if (!playlist || !playlist.videos.length) return null;
 
+  const handleClose = () => {
+    console.log('Close button clicked');
+    onClose();
+  };
+
   const getVideoId = (video: Video): string => {
     return video.id.videoId || video.id || '';
   };
@@ -156,7 +161,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
             title="Kapat"
           >

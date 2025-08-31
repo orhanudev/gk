@@ -212,11 +212,6 @@ export default function App() {
 
   const handleClosePlaylist = () => {
     setCurrentPlaylist(null);
-  };
-
-  // Force close playlist - more direct approach
-  const forceClosePlaylist = () => {
-    setCurrentPlaylist(null);
     setCurrentVideo(null);
   };
 
@@ -616,7 +611,7 @@ export default function App() {
       {/* Playlist Player */}
       <PlaylistPlayer
         playlist={currentPlaylist}
-        onClose={forceClosePlaylist}
+        onClose={handleClosePlaylist}
         onUpdatePlaylist={handleUpdatePlaylist}
       />
 
