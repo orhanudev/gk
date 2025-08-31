@@ -42,6 +42,11 @@ export default function App() {
   const [searchResults, setSearchResults] = useState<Video[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [forceClosePlaylist, setForceClosePlaylist] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
 
   // Check for mobile screen size
   React.useEffect(() => {
@@ -223,6 +228,27 @@ export default function App() {
     updatePlaylist(updatedPlaylist);
   };
 
+  // Touch handlers for mobile swipe navigation
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    // Right swipe to open navigation when closed
+    if (isRightSwipe && !sidebarOpen && isMobile) {
+      setSidebarOpen(true);
+    }
+  };
 
   const handleNavigate = (path: NavigationItem[]) => {
     setCurrentPath(path);
@@ -258,7 +284,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex relative">
+    <div 
+      className="min-h-screen bg-gray-900 flex relative"
+      onTouchStart={isMobile ? onTouchStart : undefined}
+      onTouchMove={isMobile ? onTouchMove : undefined}
+      onTouchEnd={isMobile ? onTouchEnd : undefined}
+    >
       {/* Sidebar */}
       {sidebarOpen && (
         <div className={`${
@@ -278,8 +309,7 @@ export default function App() {
             isYouTubeSearchActive={currentView === 'youtube-search'}
             searchQuery=""
             onSearchChange={() => {}}
-            onAddToPlaylist={setPlaylistModalVideo}
-            onAddToPlaylistModal={setPlaylistModalVideo}
+            onClose={() => setSidebarOpen(false)}
             isMobile={isMobile}
           />
         </div>

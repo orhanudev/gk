@@ -59,9 +59,16 @@ export function Navigation({
     
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
     
+    // Left swipe to close navigation
     if (isLeftSwipe && isMobile && onClose) {
       onClose();
+    }
+    
+    // Right swipe to open navigation (handled by parent component)
+    if (isRightSwipe && isMobile && !onClose) {
+      // This would be handled by the parent to open navigation
     }
   };
 

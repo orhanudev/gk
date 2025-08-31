@@ -12,6 +12,18 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (playlist) {
@@ -141,7 +153,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex z-50">
       {/* Playlist Sidebar */}
-      <div className={`bg-gray-800 ${isFullscreen ? 'hidden' : 'w-80'} h-full overflow-hidden flex flex-col border-r border-gray-700`}>
+      <div className={`bg-gray-800 ${isFullscreen ? 'hidden' : 'w-80 md:w-80'} ${isMobile ? 'w-72' : ''} h-full overflow-hidden flex flex-col border-r border-gray-700`}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center">
