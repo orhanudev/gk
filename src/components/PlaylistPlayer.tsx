@@ -27,6 +27,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   const currentVideo = playlist.videos[currentVideoIndex];
 
+  const getVideoId = (video: Video): string => {
+    return video.id.videoId || video.id || '';
+  };
+
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
@@ -46,7 +50,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const handleVideoEnd = () => {
     // Mark current video as watched
     const newWatchedVideos = new Set(watchedVideos);
-    newWatchedVideos.add(currentVideo.id.videoId);
+    newWatchedVideos.add(getVideoId(currentVideo));
     setWatchedVideos(newWatchedVideos);
 
     // Update playlist with watched status
@@ -105,7 +109,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             <div className="aspect-video bg-black">
               <ReactPlayer
                 ref={playerRef}
-                url={`https://www.youtube.com/watch?v=${currentVideo.id.videoId}`}
+                url={`https://www.youtube.com/watch?v=${getVideoId(currentVideo)}`}
                 width="100%"
                 height="100%"
                 controls={true}
@@ -178,7 +182,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             <div className="flex-1 overflow-y-auto">
               {playlist.videos.map((video, index) => (
                 <div
-                  key={video.id.videoId}
+                  key={getVideoId(video)}
                   className={`p-3 border-b border-gray-700 cursor-pointer transition-colors ${
                     index === currentVideoIndex
                       ? 'bg-purple-600 bg-opacity-20'
@@ -212,14 +216,14 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleWatched(video.id.videoId);
+                        toggleWatched(getVideoId(video));
                       }}
                       className={`flex-shrink-0 p-1 rounded transition-colors ${
-                        watchedVideos.has(video.id.videoId)
+                        watchedVideos.has(getVideoId(video))
                           ? 'text-green-400 hover:text-green-300'
                           : 'text-gray-500 hover:text-gray-400'
                       }`}
-                      title={watchedVideos.has(video.id.videoId) ? 'Mark as unwatched' : 'Mark as watched'}
+                      title={watchedVideos.has(getVideoId(video)) ? 'Mark as unwatched' : 'Mark as watched'}
                     >
                       <Check className="w-4 h-4" />
                     </button>
