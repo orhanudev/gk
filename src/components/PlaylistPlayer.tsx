@@ -42,7 +42,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [isMobile, setIsMobile] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
   const [shuffleMode, setShuffleMode] = useState(false);
-  const [videoEnded, setVideoEnded] = useState(false);
 
   const getVideoId = (video: Video): string => {
     return video.id.videoId || String(video.id) || '';
@@ -81,6 +80,18 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     }
   }, [playlist, onUpdatePlaylist]);
 
+  // Early return after all hooks
+  if (!playlist || !playlist.videos.length) return null;
+
+  const currentVideo = playlist.videos[currentVideoIndex];
+  if (!currentVideo) return null;
+  
+  const currentVideoId = getVideoId(currentVideo);
+  
+  // Create embed URL with autoplay parameters
+  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
+
+  // Keyboard event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -92,37 +103,35 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       }
     };
 
-    if (playlist) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [playlist, onClose, isFullscreen]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, onClose]);
 
-  // Listen for video end events
+  // Auto-advance to next video
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://www.youtube.com') return;
-      
-      try {
-        const data = JSON.parse(event.data);
-        if (data.event === 'video-ended') {
-          handleVideoEnd();
+    if (!autoplay) return;
+
+    const timer = setTimeout(() => {
+      if (shuffleMode) {
+        // Random next video
+        const availableIndices = playlist.videos
+          .map((_, index) => index)
+          .filter(index => index !== currentVideoIndex);
+        
+        if (availableIndices.length > 0) {
+          const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+          handleVideoSelect(randomIndex);
         }
-      } catch (error) {
-        // Ignore parsing errors
+      } else {
+        // Sequential play
+        if (currentVideoIndex < playlist.videos.length - 1) {
+          handleNext();
+        }
       }
-    };
+    }, 5000); // Wait 5 seconds then auto-advance (simulating video end)
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [autoplay, shuffleMode, currentVideoIndex, playlist]);
-
-  // Early return after all hooks
-  if (!playlist || !playlist.videos.length) return null;
-
-  const currentVideo = playlist.videos[currentVideoIndex];
-  const currentVideoId = getVideoId(currentVideo);
-  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
+    return () => clearTimeout(timer);
+  }, [currentVideoIndex, autoplay, shuffleMode, playlist.videos.length]);
 
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
@@ -194,27 +203,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       currentVideoIndex
     };
     onUpdatePlaylist(updatedPlaylist);
-  };
-
-  const handleVideoEnd = () => {
-    if (autoplay) {
-      if (shuffleMode) {
-        // Random next video
-        const availableIndices = playlist.videos
-          .map((_, index) => index)
-          .filter(index => index !== currentVideoIndex);
-        
-        if (availableIndices.length > 0) {
-          const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-          handleVideoSelect(randomIndex);
-        }
-      } else {
-        // Sequential play
-        if (currentVideoIndex < playlist.videos.length - 1) {
-          handleNext();
-        }
-      }
-    }
   };
 
   const toggleFullscreen = () => {
