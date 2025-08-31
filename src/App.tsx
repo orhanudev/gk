@@ -294,6 +294,10 @@ export default function App() {
               >
                 <List className="w-6 h-6" />
               </button>
+              <div className="flex items-center space-x-2">
+                <img src="/logo.png" alt="Logo" className="w-8 h-8" />
+                <h1 className="text-white font-bold text-lg hidden sm:block">Gözden Kalbe</h1>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1 justify-end">
