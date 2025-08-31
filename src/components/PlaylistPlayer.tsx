@@ -44,6 +44,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [shuffleMode, setShuffleMode] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
 
+  const getVideoId = (video: Video): string => {
+    return video.id.videoId || String(video.id) || '';
+  };
+
   // Check for mobile screen size
   useEffect(() => {
     const checkMobile = () => {
@@ -94,11 +98,27 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     }
   }, [playlist, onClose, isFullscreen]);
 
-  if (!playlist || !playlist.videos.length) return null;
+  // Listen for video end events
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === 'video-ended') {
+          handleVideoEnd();
+        }
+      } catch (error) {
+        // Ignore parsing errors
+      }
+    };
 
-  const getVideoId = (video: Video): string => {
-    return video.id.videoId || String(video.id) || '';
-  };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [autoplay, shuffleMode, currentVideoIndex, playlist]);
+
+  // Early return after all hooks
+  if (!playlist || !playlist.videos.length) return null;
 
   const currentVideo = playlist.videos[currentVideoIndex];
   const currentVideoId = getVideoId(currentVideo);
@@ -196,25 +216,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       }
     }
   };
-
-  // Listen for video end events
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'https://www.youtube.com') return;
-      
-      try {
-        const data = JSON.parse(event.data);
-        if (data.event === 'video-ended') {
-          handleVideoEnd();
-        }
-      } catch (error) {
-        // Ignore parsing errors
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [autoplay, shuffleMode, currentVideoIndex, playlist]);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
