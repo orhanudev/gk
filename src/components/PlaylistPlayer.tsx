@@ -189,7 +189,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                   <div className="flex items-start space-x-3">
                     <div className="relative flex-shrink-0">
                       <img
-                        src={video.snippet.thumbnails.medium.url}
+                        src={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails.high.url}
                         alt={video.snippet.title}
                         className="w-16 h-12 object-cover rounded"
                       />

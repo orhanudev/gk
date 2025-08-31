@@ -142,7 +142,7 @@ export function PlaylistManager({
                       >
                         <div className="relative">
                           <img
-                            src={video.snippet.thumbnails.medium.url}
+                            src={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails.high.url}
                             alt={video.snippet.title}
                             className="w-full h-24 object-cover"
                           />
