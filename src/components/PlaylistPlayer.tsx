@@ -302,12 +302,12 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex">
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex overflow-hidden">
       {/* Playlist Sidebar */}
       <div className={`bg-gray-800 ${
         isFullscreen ? 'hidden' : 
         isMobile ? 'w-64 h-full border-r' : 'w-80 h-full border-r'
-      } overflow-hidden flex flex-col border-gray-700`}>
+      } overflow-hidden flex flex-col border-gray-700 flex-shrink-0`}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between border-b border-gray-700 p-3">
           <div className="flex items-center">
@@ -466,10 +466,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
       {/* Video Player Area */}
       <div className={`bg-black flex flex-col ${
         isFullscreen ? 'fixed inset-0 z-50' : 
-        isMobile ? 'flex-1' : 'flex-1'
+        'flex-1 min-w-0 overflow-hidden'
       }`}>
         {/* Video Player */}
-        <div className="flex-1 bg-black relative">
+        <div className="flex-1 bg-black relative w-full h-full">
           <iframe
             key={`${currentVideoId}-${currentVideoIndex}`}
             width="100%"
@@ -479,7 +479,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             allowFullScreen
-            className="w-full h-full"
+            className="w-full h-full block"
           />
         </div>
 
