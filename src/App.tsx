@@ -23,7 +23,8 @@ export default function App() {
     removeFromPlaylist, 
     deletePlaylist, 
     markAsWatched,
-    toggleWatched
+    toggleWatched,
+    updatePlaylist
   } = usePlaylistData();
   
   const [currentPath, setCurrentPath] = useState<NavigationItem[]>([]);
@@ -126,12 +127,8 @@ export default function App() {
 
   const handleUpdatePlaylist = (updatedPlaylist: any) => {
     setCurrentPlaylist(updatedPlaylist);
-    // Mark videos as watched in database
-    if (updatedPlaylist.watchedVideos) {
-      for (const videoId of updatedPlaylist.watchedVideos) {
-        markAsWatched(updatedPlaylist.id, videoId, true);
-      }
-    }
+    // Update the playlist in storage
+    updatePlaylist(updatedPlaylist);
   };
 
   const handleNavigate = (path: NavigationItem[]) => {

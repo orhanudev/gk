@@ -18,6 +18,22 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     if (playlist) {
       setWatchedVideos(new Set(playlist.watchedVideos || []));
       setCurrentVideoIndex(playlist.currentVideoIndex || 0);
+      
+      // Mark the initial video as watched when playlist opens
+      const initialVideo = playlist.videos[playlist.currentVideoIndex || 0];
+      if (initialVideo) {
+        const initialVideoId = getVideoId(initialVideo);
+        const newWatchedVideos = new Set(playlist.watchedVideos || []);
+        newWatchedVideos.add(initialVideoId);
+        setWatchedVideos(newWatchedVideos);
+        
+        // Update the playlist with the watched status
+        const updatedPlaylist = {
+          ...playlist,
+          watchedVideos: newWatchedVideos
+        };
+        onUpdatePlaylist(updatedPlaylist);
+      }
     }
   }, [playlist]);
 
@@ -67,14 +83,28 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const handleVideoSelect = (index: number) => {
     setCurrentVideoIndex(index);
     setIsPlaying(true);
+    
+    // Mark the selected video as watched immediately
+    const selectedVideo = playlist.videos[index];
+    const selectedVideoId = getVideoId(selectedVideo);
+    const newWatchedVideos = new Set(watchedVideos);
+    newWatchedVideos.add(selectedVideoId);
+    setWatchedVideos(newWatchedVideos);
+    
     updatePlaylist(index);
   };
 
   const updatePlaylist = (newIndex: number) => {
+    // Mark current video as watched when updating playlist
+    const currentVideoId = getVideoId(playlist.videos[newIndex]);
+    const newWatchedVideos = new Set(watchedVideos);
+    newWatchedVideos.add(currentVideoId);
+    setWatchedVideos(newWatchedVideos);
+    
     const updatedPlaylist = {
       ...playlist,
       currentVideoIndex: newIndex,
-      watchedVideos: watchedVideos
+      watchedVideos: newWatchedVideos
     };
     onUpdatePlaylist(updatedPlaylist);
   };

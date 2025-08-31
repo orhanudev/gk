@@ -135,7 +135,7 @@ export function PlaylistManager({
               {playlist.videos.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {playlist.videos.slice(0, 8).map((video) => {
-                    const isWatched = playlist.watchedVideos?.has(video.id.videoId || video.id);
+                    const isVideoWatched = playlist.watchedVideos?.has(video.id.videoId || video.id);
                     const videoId = video.id.videoId || video.id;
                     return (
                       <div
@@ -152,7 +152,7 @@ export function PlaylistManager({
                           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
                             <Play className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
-                          {isWatched && (
+                          {isVideoWatched && (
                             <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
                               <Check className="w-3 h-3 mr-1" />
                               İzlendi
@@ -174,11 +174,11 @@ export function PlaylistManager({
                               onToggleWatched(playlist.id, videoId);
                             }}
                             className={`p-1 rounded transition-colors ${
-                              isWatched 
+                              isVideoWatched 
                                 ? 'bg-green-600 hover:bg-green-700 text-white' 
                                 : 'bg-gray-600 hover:bg-gray-700 text-white'
                             }`}
-                            title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+                            title={isVideoWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
                           >
                             <Check className="w-3 h-3" />
                           </button>

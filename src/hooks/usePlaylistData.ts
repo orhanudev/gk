@@ -84,6 +84,7 @@ export function usePlaylistData() {
     deletePlaylist,
     markAsWatched,
     toggleWatched,
+    updatePlaylist,
     refreshPlaylists: () => {} // No-op since we're using localStorage
   };
 }
