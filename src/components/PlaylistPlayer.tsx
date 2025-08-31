@@ -400,7 +400,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                     ? 'bg-purple-600 bg-opacity-20 border-purple-500'
                     : 'hover:bg-gray-700'
                 }`}
-                onClick={() => toggleWatched(videoId)}
+                onClick={() => handleVideoSelect(index)}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`flex-shrink-0 bg-purple-600 rounded-full flex items-center justify-center text-white font-medium ${isMobile ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm'}`}>
