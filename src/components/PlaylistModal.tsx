@@ -62,8 +62,7 @@ export function PlaylistModal({
                 Henüz oynatma listesi yok
               </p>
             ) : (
-              <div className="space-y-2">
-                {playlists.map((playlist) => (
+              playlists.map((playlist) => (
                 <div
                   key={playlist.id}
                   className="flex items-center justify-between bg-gray-700 p-3 rounded-lg"
@@ -94,16 +93,15 @@ export function PlaylistModal({
                     </button>
                   </div>
                 </div>
-                ))}
-              </div>
+              ))
             )}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-700 flex-shrink-0">
             {!showCreateForm ? (
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="flex items-center w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-colors"
+                className="flex items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-colors"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Yeni Oynatma Listesi Oluştur
