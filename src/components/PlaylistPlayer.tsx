@@ -44,6 +44,90 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [autoplay, setAutoplay] = useState(true);
   const [shuffleMode, setShuffleMode] = useState(false);
 
+  // Early return AFTER all hooks are declared
+  if (!playlist || !playlist.videos.length) return null;
+
+  // Helper functions defined after hooks but before useEffect that depends on them
+  const getVideoId = (video: Video): string => {
+    return video.id.videoId || String(video.id) || '';
+  };
+
+  const handleNext = () => {
+    if (currentVideoIndex < playlist.videos.length - 1) {
+      const newIndex = currentVideoIndex + 1;
+      setCurrentVideoIndex(newIndex);
+      
+      // Mark the new video as watched and update playlist
+      const newVideo = playlist.videos[newIndex];
+      const newVideoId = getVideoId(newVideo);
+      const newWatchedVideos = new Set(watchedVideos);
+      newWatchedVideos.add(newVideoId);
+      setWatchedVideos(newWatchedVideos);
+      
+      const updatedPlaylist = {
+        ...playlist,
+        currentVideoIndex: newIndex,
+        watchedVideos: newWatchedVideos
+      };
+      onUpdatePlaylist(updatedPlaylist);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentVideoIndex > 0) {
+      const newIndex = currentVideoIndex - 1;
+      setCurrentVideoIndex(newIndex);
+      
+      // Update playlist with new index
+      const updatedPlaylist = {
+        ...playlist,
+        currentVideoIndex: newIndex,
+        watchedVideos: watchedVideos
+      };
+      onUpdatePlaylist(updatedPlaylist);
+    }
+  };
+
+  const handleVideoSelect = (index: number) => {
+    setCurrentVideoIndex(index);
+    
+    // Mark the selected video as watched immediately
+    const selectedVideo = playlist.videos[index];
+    const selectedVideoId = getVideoId(selectedVideo);
+    const newWatchedVideos = new Set(watchedVideos);
+    newWatchedVideos.add(selectedVideoId);
+    setWatchedVideos(newWatchedVideos);
+    
+    // Update the playlist with new index and watched status
+    const updatedPlaylist = {
+      ...playlist,
+      currentVideoIndex: index,
+      watchedVideos: newWatchedVideos
+    };
+    onUpdatePlaylist(updatedPlaylist);
+  };
+
+  const toggleWatched = (videoId: string) => {
+    const newWatchedVideos = new Set(watchedVideos);
+    if (newWatchedVideos.has(videoId)) {
+      newWatchedVideos.delete(videoId);
+    } else {
+      newWatchedVideos.add(videoId);
+    }
+    setWatchedVideos(newWatchedVideos);
+    
+    const updatedPlaylist = {
+      ...playlist,
+      watchedVideos: newWatchedVideos,
+      currentVideoIndex
+    };
+    onUpdatePlaylist(updatedPlaylist);
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
   // Check for mobile screen size
   useEffect(() => {
     const checkMobile = () => {
@@ -130,14 +214,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [currentVideoIndex, autoplay, shuffleMode, playlist, handleNext]);
-
-  // Early return AFTER all hooks are declared
-  if (!playlist || !playlist.videos.length) return null;
-
-  const getVideoId = (video: Video): string => {
-    return video.id.videoId || String(video.id) || '';
-  };
+  }, [currentVideoIndex, autoplay, shuffleMode, playlist]);
 
   const currentVideo = playlist.videos[currentVideoIndex];
   
@@ -145,82 +222,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   
   // Create embed URL with autoplay parameters
   const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
-
-  const handleNext = () => {
-    if (currentVideoIndex < playlist.videos.length - 1) {
-      const newIndex = currentVideoIndex + 1;
-      setCurrentVideoIndex(newIndex);
-      
-      // Mark the new video as watched and update playlist
-      const newVideo = playlist.videos[newIndex];
-      const newVideoId = getVideoId(newVideo);
-      const newWatchedVideos = new Set(watchedVideos);
-      newWatchedVideos.add(newVideoId);
-      setWatchedVideos(newWatchedVideos);
-      
-      const updatedPlaylist = {
-        ...playlist,
-        currentVideoIndex: newIndex,
-        watchedVideos: newWatchedVideos
-      };
-      onUpdatePlaylist(updatedPlaylist);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentVideoIndex > 0) {
-      const newIndex = currentVideoIndex - 1;
-      setCurrentVideoIndex(newIndex);
-      
-      // Update playlist with new index
-      const updatedPlaylist = {
-        ...playlist,
-        currentVideoIndex: newIndex,
-        watchedVideos: watchedVideos
-      };
-      onUpdatePlaylist(updatedPlaylist);
-    }
-  };
-
-  const handleVideoSelect = (index: number) => {
-    setCurrentVideoIndex(index);
-    
-    // Mark the selected video as watched immediately
-    const selectedVideo = playlist.videos[index];
-    const selectedVideoId = getVideoId(selectedVideo);
-    const newWatchedVideos = new Set(watchedVideos);
-    newWatchedVideos.add(selectedVideoId);
-    setWatchedVideos(newWatchedVideos);
-    
-    // Update the playlist with new index and watched status
-    const updatedPlaylist = {
-      ...playlist,
-      currentVideoIndex: index,
-      watchedVideos: newWatchedVideos
-    };
-    onUpdatePlaylist(updatedPlaylist);
-  };
-
-  const toggleWatched = (videoId: string) => {
-    const newWatchedVideos = new Set(watchedVideos);
-    if (newWatchedVideos.has(videoId)) {
-      newWatchedVideos.delete(videoId);
-    } else {
-      newWatchedVideos.add(videoId);
-    }
-    setWatchedVideos(newWatchedVideos);
-    
-    const updatedPlaylist = {
-      ...playlist,
-      watchedVideos: newWatchedVideos,
-      currentVideoIndex
-    };
-    onUpdatePlaylist(updatedPlaylist);
-  };
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-90 z-50 ${
@@ -354,7 +355,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        shareVideo(video, true);
+                        shareVideo(video);
                       }}
                       className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} text-gray-500 hover:text-gray-400`}
                       title="GK'da Paylaş"
