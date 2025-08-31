@@ -38,9 +38,11 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose();
+        if (isFullscreen) {
+          setIsFullscreen(false);
+        } else {
+          onClose();
+        }
       }
     };
 
@@ -48,12 +50,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [playlist, onClose]);
-
-  // Simple close handler that just calls onClose
-  const closePlaylist = () => {
-    onClose();
-  };
+  }, [playlist, onClose, isFullscreen]);
 
   if (!playlist || !playlist.videos.length) return null;
 
@@ -137,6 +134,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     onUpdatePlaylist(updatedPlaylist);
   };
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex z-50">
       {/* Playlist Sidebar */}
@@ -155,7 +156,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={() => onClose()}
+            onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
             title="Kapat"
           >
@@ -257,40 +258,46 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
           />
         </div>
 
-        {/* Video Info (when not fullscreen) */}
-        {!isFullscreen && (
-          <div className="bg-gray-800 p-4 border-t border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="text-white font-semibold line-clamp-1">
-                  {currentVideo.snippet.title}
-                </h3>
-                <div className="flex items-center space-x-4 text-gray-400 text-sm">
-                  <span>{currentVideo.snippet.channelTitle}</span>
-                  {currentVideo.snippet.uploadDate && (
-                    <span>
-                      {new Date(currentVideo.snippet.uploadDate).toLocaleDateString('tr-TR')}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => toggleWatched(currentVideoId)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    watchedVideos.has(currentVideoId)
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
-                  }`}
-                  title={watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
-                >
-                  <Check className="w-4 h-4" />
-                </button>
+        {/* Video Controls (Bottom Bar) */}
+        <div className="bg-gray-800 p-4 border-t border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1 flex-1 min-w-0 mr-4">
+              <h3 className="text-white font-semibold line-clamp-1">
+                {currentVideo.snippet.title}
+              </h3>
+              <div className="flex items-center space-x-4 text-gray-400 text-sm">
+                <span>{currentVideo.snippet.channelTitle}</span>
+                {currentVideo.snippet.uploadDate && (
+                  <span>
+                    {new Date(currentVideo.snippet.uploadDate).toLocaleDateString('tr-TR')}
+                  </span>
+                )}
               </div>
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => toggleWatched(currentVideoId)}
+                className={`p-2 rounded-lg transition-colors ${
+                  watchedVideos.has(currentVideoId)
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
+                }`}
+                title={watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={toggleFullscreen}
+                className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                title={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
+              >
+                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
