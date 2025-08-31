@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Play, Trash2, Plus, Video, Clock, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Play, Trash2, Plus, Video, Clock, Check, ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { Video as VideoType } from '../types';
+import { ImportPlaylistModal } from './ImportPlaylistModal';
 
 interface Playlist {
   id: string;
@@ -18,6 +19,7 @@ interface PlaylistManagerProps {
   onAddVideoToPlaylist: (video: VideoType | null) => void;
   onCreatePlaylist: (name: string, videos?: VideoType[]) => void;
   onToggleWatched: (playlistId: string, videoId: string) => void;
+  onImportPlaylist?: (videos: VideoType[], title: string) => void;
 }
 
 export function PlaylistManager({
@@ -27,11 +29,13 @@ export function PlaylistManager({
   onDeletePlaylist,
   onAddVideoToPlaylist,
   onCreatePlaylist,
-  onToggleWatched
+  onToggleWatched,
+  onImportPlaylist
 }: PlaylistManagerProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [expandedPlaylists, setExpandedPlaylists] = useState<Set<string>>(new Set());
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const handleCreatePlaylist = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +61,15 @@ export function PlaylistManager({
     window.open(videoUrl, '_blank');
   };
 
+  const handleImportPlaylist = (videos: VideoType[], title: string) => {
+    if (onImportPlaylist) {
+      onImportPlaylist(videos, title);
+    } else {
+      onCreatePlaylist(title, videos);
+    }
+    setShowImportModal(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -64,13 +77,22 @@ export function PlaylistManager({
           <Play className="w-8 h-8 mr-3 text-purple-400" />
           Oynatma Listelerim ({playlists.length})
         </h2>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Yeni Liste</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span>YouTube'dan İçe Aktar</span>
+          </button>
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Yeni Liste</span>
+          </button>
+        </div>
       </div>
 
       {showCreateForm && (
@@ -219,6 +241,13 @@ export function PlaylistManager({
           ))}
         </div>
       )}
+
+      {/* Import Playlist Modal */}
+      <ImportPlaylistModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={handleImportPlaylist}
+      />
     </div>
   );
 }
