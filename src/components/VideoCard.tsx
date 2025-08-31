@@ -108,7 +108,9 @@ export function VideoCard({ video, onPlayVideo, onAddToPlaylist, isWatched = fal
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onAddToPlaylist(video);
+              if (typeof onAddToPlaylist === 'function') {
+                onAddToPlaylist(video);
+              }
             }}
             className="text-gray-400 hover:text-white transition-colors"
             title="Listeye ekle"
