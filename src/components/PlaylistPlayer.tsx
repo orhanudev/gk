@@ -302,25 +302,21 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
   const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-90 z-50 ${
-      isMobile ? 'flex flex-col' : 'flex'
-    }`}>
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex">
       {/* Playlist Sidebar */}
       <div className={`bg-gray-800 ${
         isFullscreen ? 'hidden' : 
-        isMobile ? 'w-full h-48 border-b' : 'w-80 h-full border-r'
+        isMobile ? 'w-64 h-full border-r' : 'w-80 h-full border-r'
       } overflow-hidden flex flex-col border-gray-700`}>
         {/* Sidebar Header */}
-        <div className={`flex items-center justify-between border-b border-gray-700 ${
-          isMobile ? 'p-2' : 'p-4'
-        }`}>
+        <div className="flex items-center justify-between border-b border-gray-700 p-3">
           <div className="flex items-center">
             <List className="w-6 h-6 text-purple-400 mr-3" />
             <div>
-              <h2 className={`text-white font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}>
+              <h2 className={`text-white font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
                 {playlist.name}
               </h2>
-              <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              <p className={`text-gray-400 ${isMobile ? 'text-sm' : 'text-sm'}`}>
                 {currentVideoIndex + 1} / {playlist.videos.length} video
               </p>
             </div>
@@ -335,7 +331,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
         </div>
 
         {/* Playlist Controls */}
-        <div className={`border-b border-gray-700 ${isMobile ? 'p-1' : 'p-4'}`}>
+        <div className={`border-b border-gray-700 ${isMobile ? 'p-2' : 'p-4'}`}>
           <div className="flex items-center justify-center space-x-2 mb-3">
             <button
               onClick={handlePrevious}
@@ -390,8 +386,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
         </div>
         
         {/* Video List */}
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'overflow-x-auto' : ''}`}>
-          <div className={isMobile ? 'flex space-x-2 p-2' : ''}>
+        <div className="flex-1 overflow-y-auto">
           {playlist.videos.map((video, index) => {
             const videoId = video.id.videoId || String(video.id) || '';
             const isWatched = watchedVideos.has(videoId);
@@ -400,28 +395,20 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
             return (
               <div
                 key={videoId}
-                className={`cursor-pointer transition-colors ${
-                  isMobile 
-                    ? `flex-shrink-0 w-32 p-2 rounded-lg ${
-                        isCurrent ? 'bg-purple-600 bg-opacity-20 border border-purple-500' : 'bg-gray-700'
-                      }`
-                    : `p-3 border-b border-gray-700 ${
+                className={`cursor-pointer transition-colors p-3 border-b border-gray-700 ${
                   isCurrent
                     ? 'bg-purple-600 bg-opacity-20 border-purple-500'
                     : 'hover:bg-gray-700'
-                      }`
                 }`}
                 onClick={() => toggleWatched(videoId)}
               >
-                <div className={`flex ${
-                  isMobile ? 'flex-col space-y-1' : 'items-start space-x-3'
-                }`}>
+                <div className="flex items-start space-x-3">
                   <div className={`flex-shrink-0 bg-purple-600 rounded-full flex items-center justify-center text-white font-medium ${isMobile ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm'}`}>
                     {index + 1}
                   </div>
                   
-                  <div className={`${isMobile ? '' : 'flex-1'} min-w-0`}>
-                    <h5 className={`text-white font-medium line-clamp-2 mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  <div className="flex-1 min-w-0">
+                    <h5 className={`text-white font-medium line-clamp-2 mb-1 ${isMobile ? 'text-sm' : 'text-sm'}`}>
                       {video.snippet.title}
                     </h5>
                     <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -429,16 +416,16 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                     </p>
                   </div>
 
-                  <div className={`flex ${isMobile ? 'justify-center space-x-1' : 'flex-col space-y-1'}`}>
+                  <div className="flex flex-col space-y-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         shareVideo(video);
                       }}
-                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-1' : 'p-1.5'} text-gray-400 hover:text-white hover:bg-gray-700`}
+                      className="flex-shrink-0 rounded transition-colors p-1.5 text-gray-400 hover:text-white hover:bg-gray-700"
                       title="Paylaş"
                     >
-                      <Share2 className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                      <Share2 className="w-4 h-4" />
                     </button>
                     
                     <button
@@ -446,14 +433,14 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                         e.stopPropagation();
                         toggleWatched(videoId);
                       }}
-                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-1' : 'p-1.5'} hover:bg-gray-700 ${
+                      className={`flex-shrink-0 rounded transition-colors p-1.5 hover:bg-gray-700 ${
                         isWatched
                           ? 'text-green-400 hover:text-green-300'
                           : 'text-gray-400 hover:text-white'
                       }`}
                       title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
                     >
-                      <Check className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                      <Check className="w-4 h-4" />
                     </button>
 
                     {onAddToPlaylistModal && (
@@ -462,10 +449,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                         e.stopPropagation();
                         onAddToPlaylistModal(video);
                       }}
-                      className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-1' : 'p-1.5'} text-gray-400 hover:text-white hover:bg-gray-700`}
+                      className="flex-shrink-0 rounded transition-colors p-1.5 text-gray-400 hover:text-white hover:bg-gray-700"
                       title="Başka listeye ekle"
                     >
-                      <Plus className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                      <Plus className="w-4 h-4" />
                     </button>
                     )}
                   </div>
@@ -473,7 +460,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
               </div>
             );
           })}
-          </div>
         </div>
       </div>
 
