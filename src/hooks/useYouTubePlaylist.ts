@@ -155,7 +155,7 @@ export function useYouTubePlaylist() {
         }
         
         nextPageToken = itemsData.nextPageToken || '';
-      } while (nextPageToken && allVideos.length < 200); // Limit to 200 videos max
+      } while (nextPageToken); // Import all videos without limit
 
       return {
         videos: allVideos,
