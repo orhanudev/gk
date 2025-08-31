@@ -220,6 +220,21 @@ export function Navigation({
           }`}
         >
           <Youtube className="w-5 h-5 mr-3" />
+          <span className="font-medium">YouTube Link</span>
+        </button>
+        
+        <button
+          onClick={() => {
+            onNavigate([]);
+            onShowYouTubeSearch();
+          }}
+          className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors mt-2 ${
+            isYouTubeSearchActive
+              ? 'bg-red-600 text-white'
+              : 'text-gray-300 hover:bg-gray-700 hover:bg-red-600'
+          }`}
+        >
+          <Search className="w-5 h-5 mr-3" />
           <span className="font-medium">YouTube Ara</span>
         </button>
       </div>

@@ -493,6 +493,11 @@ export default function App() {
               onAddToPlaylist={setPlaylistModalVideo}
               onAddToPlaylistModal={setPlaylistModalVideo}
             />
+          ) : currentView === 'youtube-search' ? (
+            <YouTubeSearch
+              onAddToPlaylistModal={setPlaylistModalVideo}
+              onPlayVideo={setCurrentVideo}
+            />
           ) : currentView === 'videos' ? (
             <>
               <Breadcrumb path={currentPath} onNavigate={handleNavigate} />
