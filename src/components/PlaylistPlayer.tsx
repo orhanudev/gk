@@ -21,12 +21,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     }
   }, [playlist]);
 
-  useEffect(() => {
-    if (playlist && playlist.videos.length > 0) {
-      setCurrentVideo(playlist.videos[currentVideoIndex]);
-    }
-  }, [playlist, currentVideoIndex]);
-
   if (!playlist || !playlist.videos.length) return null;
 
   const getVideoId = (video: Video): string => {
@@ -42,7 +36,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       const updatedPlaylist = {
         ...playlist,
         currentVideoIndex: newIndex,
-        watchedVideos: Array.from(watchedVideos)
+        watchedVideos: watchedVideos
       };
       onUpdatePlaylist(updatedPlaylist);
     }
@@ -57,7 +51,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
       const updatedPlaylist = {
         ...playlist,
         currentVideoIndex: newIndex,
-        watchedVideos: Array.from(watchedVideos)
+        watchedVideos: watchedVideos
       };
       onUpdatePlaylist(updatedPlaylist);
     }
@@ -65,12 +59,13 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   const handleVideoSelect = (index: number) => {
     setCurrentVideoIndex(index);
+    setCurrentVideo(playlist.videos[index]);
     
     // Update playlist with new current index
     const updatedPlaylist = {
       ...playlist,
       currentVideoIndex: index,
-      watchedVideos: Array.from(watchedVideos)
+      watchedVideos: watchedVideos
     };
     onUpdatePlaylist(updatedPlaylist);
   };
@@ -86,7 +81,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
     const updatedPlaylist = {
       ...playlist,
-      watchedVideos: Array.from(newWatchedVideos)
+      watchedVideos: newWatchedVideos
     };
     onUpdatePlaylist(updatedPlaylist);
   };
@@ -101,20 +96,17 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     // Update playlist
     const updatedPlaylist = {
       ...playlist,
-      watchedVideos: Array.from(newWatchedVideos),
+      watchedVideos: newWatchedVideos,
       currentVideoIndex
     };
     onUpdatePlaylist(updatedPlaylist);
 
-    // Auto-play next video if available
-    if (currentVideoIndex < playlist.videos.length - 1) {
-      setTimeout(() => {
-        handleNext();
-      }, 500);
-    } else {
-      // Close playlist if this was the last video
-      setCurrentVideo(null);
-    }
+    // Close the video player but keep playlist open
+    setCurrentVideo(null);
+  };
+
+  const handlePlayCurrentVideo = () => {
+    setCurrentVideo(playlist.videos[currentVideoIndex]);
   };
 
   return (
@@ -155,7 +147,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
               </button>
               
               <button
-                onClick={() => setCurrentVideo(playlist.videos[currentVideoIndex])}
+                onClick={handlePlayCurrentVideo}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
               >
                 <Play className="w-5 h-5" />
