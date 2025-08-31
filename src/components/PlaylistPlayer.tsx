@@ -36,15 +36,16 @@ const shareVideo = async (video: Video) => {
 };
 
 export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: PlaylistPlayerProps) {
-  // Early return BEFORE any hooks to avoid Rules of Hooks violation
-  if (!playlist || !playlist.videos.length) return null;
-
+  // ALL hooks must be declared first, before any conditional logic
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
   const [shuffleMode, setShuffleMode] = useState(false);
+
+  // Early return AFTER all hooks are declared
+  if (!playlist || !playlist.videos.length) return null;
 
   const getVideoId = (video: Video): string => {
     return video.id.videoId || String(video.id) || '';
