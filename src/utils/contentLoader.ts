@@ -10,6 +10,13 @@ async function loadJsonFile(path: string): Promise<any[]> {
       return [];
     }
     
+    // Check if response is actually JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.log(`Not a JSON file: ${path} (content-type: ${contentType})`);
+      return [];
+    }
+    
     const data = await response.json();
     if (!Array.isArray(data)) {
       console.warn(`Invalid data format in ${path}`);
@@ -92,8 +99,10 @@ async function discoverContent(): Promise<{folders: string[], files: string[]}> 
     
     for (const testPath of testPaths) {
       try {
-        const response = await fetch(`/content/${testPath}`, { method: 'HEAD' });
+        const response = await fetch(`/content/${testPath}`);
         if (response.ok) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
           files.push(testPath);
           console.log(`Found accessible file: ${testPath}`);
           
@@ -106,6 +115,7 @@ async function discoverContent(): Promise<{folders: string[], files: string[]}> 
               folders.push(folderPath);
               console.log(`Inferred folder: ${folderPath}`);
             }
+          }
           }
         }
       } catch (error) {
