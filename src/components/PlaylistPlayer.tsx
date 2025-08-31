@@ -13,6 +13,11 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  useEffect(() => {
+    if (playlist) {
+      setCurrentVideoIndex(playlist.currentVideoIndex || 0);
+      setWatchedVideos(new Set(playlist.watchedVideos || []));
+      
       // Mark the first video as watched when playlist starts
       if (playlist.videos.length > 0) {
         const firstVideoId = getVideoId(playlist.videos[playlist.currentVideoIndex || 0]);
