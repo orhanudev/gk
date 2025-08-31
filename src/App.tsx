@@ -126,8 +126,8 @@ export default function App() {
       subgroups.forEach(subgroup => {
         if (subgroup.videos) {
           subgroup.videos.forEach((video: Video) => {
-            if (searchMatch(query, video.snippet.title) ||
-                searchMatch(query, video.snippet.channelTitle)) {
+            if (searchMatch(query.trim(), video.snippet.title) ||
+                searchMatch(query.trim(), video.snippet.channelTitle)) {
               allVideos.push(video);
             }
           });
