@@ -34,6 +34,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentView, setCurrentView] = useState<'videos' | 'playlists' | 'search' | 'videolink'>('videos');
+  const [currentView, setCurrentView] = useState<'videos' | 'playlists' | 'search' | 'videolink' | 'youtube-search'>('videos');
   const [isMobile, setIsMobile] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -274,6 +275,8 @@ export default function App() {
             isPlaylistsActive={currentView === 'playlists'}
             onShowVideoLink={() => setCurrentView('videolink')}
             isVideoLinkActive={currentView === 'videolink'}
+            onShowYouTubeSearch={() => setCurrentView('youtube-search')}
+            isYouTubeSearchActive={currentView === 'youtube-search'}
             searchQuery=""
             onSearchChange={() => {}}
             onAddToPlaylist={setPlaylistModalVideo}
