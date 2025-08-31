@@ -632,6 +632,7 @@ export default function App() {
               onAddVideoToPlaylist={setPlaylistModalVideo}
               onCreatePlaylist={handleCreatePlaylist}
               onToggleWatched={toggleWatched}
+              onImportPlaylist={handleCreatePlaylist}
             />
           )}
         </main>
