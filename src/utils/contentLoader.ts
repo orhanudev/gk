@@ -2,33 +2,17 @@ import { Group, Subgroup } from '../types';
 
 // List of common folder names to check for
 const COMMON_FOLDERS = [
-  'kids', 'Çocuk', 'children',
-  'movies', 'films', 'cinema',
-  'music', 'songs', 'audio',
-  'tutorials', 'education', 'learning',
-  'documentaries', 'docs',
-  'sports', 'games',
-  'news', 'entertainment',
-  'comedy', 'drama', 'action',
-  'animation', 'cartoon'
+
 ];
 
 // Common subfolder patterns
 const COMMON_SUBFOLDERS = [
-  'popular', 'populer', 'trending',
-  'new', 'latest', 'recent',
-  'classic', 'old', 'vintage',
-  'series', 'episodes', 'seasons',
-  'shorts', 'clips', 'highlights'
+
 ];
 
 // Common file naming patterns
 const COMMON_FILE_PATTERNS = [
-  'index.json',
-  'videos.json',
-  'content.json',
-  'data.json',
-  'list.json'
+
 ];
 
 async function checkPathExists(path: string): Promise<boolean> {
