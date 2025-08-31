@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Check } from 'lucide-react';
-import ReactPlayer from 'react-player';
+import React, { useState, useEffect } from 'react';
+import { X, Play, SkipBack, SkipForward, Check, List } from 'lucide-react';
+import { VideoPlayer } from './VideoPlayer';
 import { Playlist, Video } from '../types';
-import { formatDuration } from '../utils/videoUtils';
 
 interface PlaylistPlayerProps {
   playlist: Playlist | null;
@@ -12,20 +11,23 @@ interface PlaylistPlayerProps {
 
 export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: PlaylistPlayerProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
-  const playerRef = useRef<ReactPlayer>(null);
+  const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
 
   useEffect(() => {
     if (playlist) {
       setWatchedVideos(new Set(playlist.watchedVideos || []));
+      setCurrentVideoIndex(playlist.currentVideoIndex || 0);
     }
   }, [playlist]);
 
-  if (!playlist || !playlist.videos.length) return null;
+  useEffect(() => {
+    if (playlist && playlist.videos.length > 0) {
+      setCurrentVideo(playlist.videos[currentVideoIndex]);
+    }
+  }, [playlist, currentVideoIndex]);
 
-  const currentVideo = playlist.videos[currentVideoIndex];
+  if (!playlist || !playlist.videos.length) return null;
 
   const getVideoId = (video: Video): string => {
     return video.id.videoId || video.id || '';
@@ -33,37 +35,44 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
-      setCurrentVideoIndex(currentVideoIndex + 1);
+      const newIndex = currentVideoIndex + 1;
+      setCurrentVideoIndex(newIndex);
+      
+      // Update playlist with new current index
+      const updatedPlaylist = {
+        ...playlist,
+        currentVideoIndex: newIndex,
+        watchedVideos: Array.from(watchedVideos)
+      };
+      onUpdatePlaylist(updatedPlaylist);
     }
   };
 
   const handlePrevious = () => {
     if (currentVideoIndex > 0) {
-      setCurrentVideoIndex(currentVideoIndex - 1);
+      const newIndex = currentVideoIndex - 1;
+      setCurrentVideoIndex(newIndex);
+      
+      // Update playlist with new current index
+      const updatedPlaylist = {
+        ...playlist,
+        currentVideoIndex: newIndex,
+        watchedVideos: Array.from(watchedVideos)
+      };
+      onUpdatePlaylist(updatedPlaylist);
     }
   };
 
   const handleVideoSelect = (index: number) => {
     setCurrentVideoIndex(index);
-  };
-
-  const handleVideoEnd = () => {
-    // Mark current video as watched
-    const newWatchedVideos = new Set(watchedVideos);
-    newWatchedVideos.add(getVideoId(currentVideo));
-    setWatchedVideos(newWatchedVideos);
-
-    // Update playlist with watched status
+    
+    // Update playlist with new current index
     const updatedPlaylist = {
       ...playlist,
-      watchedVideos: Array.from(newWatchedVideos)
+      currentVideoIndex: index,
+      watchedVideos: Array.from(watchedVideos)
     };
     onUpdatePlaylist(updatedPlaylist);
-
-    // Auto-play next video
-    if (currentVideoIndex < playlist.videos.length - 1) {
-      handleNext();
-    }
   };
 
   const toggleWatched = (videoId: string) => {
@@ -82,158 +91,158 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     onUpdatePlaylist(updatedPlaylist);
   };
 
+  const handleVideoPlayerClose = () => {
+    // Mark current video as watched when closing
+    const currentVideoId = getVideoId(playlist.videos[currentVideoIndex]);
+    const newWatchedVideos = new Set(watchedVideos);
+    newWatchedVideos.add(currentVideoId);
+    setWatchedVideos(newWatchedVideos);
+
+    // Update playlist
+    const updatedPlaylist = {
+      ...playlist,
+      watchedVideos: Array.from(newWatchedVideos),
+      currentVideoIndex
+    };
+    onUpdatePlaylist(updatedPlaylist);
+
+    // Auto-play next video if available
+    if (currentVideoIndex < playlist.videos.length - 1) {
+      setTimeout(() => {
+        handleNext();
+      }, 500);
+    } else {
+      // Close playlist if this was the last video
+      setCurrentVideo(null);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <div>
-            <h2 className="text-white text-lg font-semibold">
-              {playlist.name}
-            </h2>
-            <p className="text-gray-400 text-sm">
-              {currentVideoIndex + 1} / {playlist.videos.length} videos
-            </p>
+    <>
+      {/* Playlist Sidebar */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40 p-4">
+        <div className="bg-gray-800 rounded-lg w-full max-w-md max-h-[90vh] overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+            <div className="flex items-center">
+              <List className="w-6 h-6 text-purple-400 mr-3" />
+              <div>
+                <h2 className="text-white text-lg font-semibold">
+                  {playlist.name}
+                </h2>
+                <p className="text-gray-400 text-sm">
+                  {currentVideoIndex + 1} / {playlist.videos.length} video
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
 
-        <div className="flex flex-1 min-h-0">
-          {/* Video Player */}
-          <div className="flex-1 flex flex-col">
-            <div className="aspect-video bg-black">
-              <ReactPlayer
-                ref={playerRef}
-                url={`https://www.youtube.com/watch?v=${getVideoId(currentVideo)}`}
-                width="100%"
-                height="100%"
-                controls={true}
-                playing={isPlaying}
-                muted={isMuted}
-                onEnded={handleVideoEnd}
-                config={{
-                  youtube: {
-                    playerVars: {
-                      modestbranding: 1,
-                      rel: 0,
-                      showinfo: 0,
-                      iv_load_policy: 3,
-                    },
-                  },
-                }}
-              />
-            </div>
-
-            {/* Video Info */}
-            <div className="p-4 border-b border-gray-700">
-              <h3 className="text-white font-semibold mb-2">
-                {currentVideo.snippet.title}
-              </h3>
-              <p className="text-gray-400 text-sm">
-                {currentVideo.snippet.channelTitle}
-              </p>
-            </div>
-
-            {/* Controls */}
-            <div className="p-4 flex items-center justify-center space-x-4">
+          {/* Controls */}
+          <div className="p-4 border-b border-gray-700">
+            <div className="flex items-center justify-center space-x-4">
               <button
                 onClick={handlePrevious}
                 disabled={currentVideoIndex === 0}
-                className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-2 rounded-lg hover:bg-gray-700"
               >
-                <SkipBack className="w-6 h-6" />
+                <SkipBack className="w-5 h-5" />
               </button>
               
               <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full transition-colors"
+                onClick={() => setCurrentVideo(playlist.videos[currentVideoIndex])}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
               >
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                <Play className="w-5 h-5" />
+                <span>Şu Anki Videoyu Oynat</span>
               </button>
               
               <button
                 onClick={handleNext}
                 disabled={currentVideoIndex === playlist.videos.length - 1}
-                className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-2 rounded-lg hover:bg-gray-700"
               >
-                <SkipForward className="w-6 h-6" />
-              </button>
-              
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                <SkipForward className="w-5 h-5" />
               </button>
             </div>
           </div>
-
-          {/* Playlist Sidebar */}
-          <div className="w-80 bg-gray-900 border-l border-gray-700 flex flex-col">
-            <div className="p-4 border-b border-gray-700">
-              <h4 className="text-white font-semibold">Playlist Videos</h4>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              {playlist.videos.map((video, index) => (
-                <div
-                  key={getVideoId(video)}
-                  className={`p-3 border-b border-gray-700 cursor-pointer transition-colors ${
-                    index === currentVideoIndex
-                      ? 'bg-purple-600 bg-opacity-20'
-                      : 'hover:bg-gray-700'
-                  }`}
-                  onClick={() => handleVideoSelect(index)}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="relative flex-shrink-0">
-                      <img
-                        src={video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails.high.url}
-                        alt={video.snippet.title}
-                        className="w-16 h-12 object-cover rounded"
-                      />
-                      {index === currentVideoIndex && (
-                        <div className="absolute inset-0 bg-purple-600 bg-opacity-50 flex items-center justify-center rounded">
-                          <Play className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h5 className="text-white text-sm font-medium line-clamp-2 mb-1">
-                        {video.snippet.title}
-                      </h5>
-                      <p className="text-gray-400 text-xs">
-                        {video.snippet.channelTitle}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleWatched(getVideoId(video));
+          
+          {/* Video List */}
+          <div className="flex-1 overflow-y-auto max-h-96">
+            {playlist.videos.map((video, index) => (
+              <div
+                key={getVideoId(video)}
+                className={`p-3 border-b border-gray-700 cursor-pointer transition-colors ${
+                  index === currentVideoIndex
+                    ? 'bg-purple-600 bg-opacity-20 border-purple-500'
+                    : 'hover:bg-gray-700'
+                }`}
+                onClick={() => handleVideoSelect(index)}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={video.snippet.thumbnails?.high?.url || 
+                           video.snippet.thumbnails?.medium?.url || 
+                           video.snippet.thumbnails?.default?.url ||
+                           `https://i.ytimg.com/vi/${getVideoId(video)}/maxresdefault.jpg`}
+                      alt={video.snippet.title}
+                      className="w-16 h-12 object-cover rounded"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/120x90/374151/9CA3AF?text=Video';
                       }}
-                      className={`flex-shrink-0 p-1 rounded transition-colors ${
-                        watchedVideos.has(getVideoId(video))
-                          ? 'text-green-400 hover:text-green-300'
-                          : 'text-gray-500 hover:text-gray-400'
-                      }`}
-                      title={watchedVideos.has(getVideoId(video)) ? 'Mark as unwatched' : 'Mark as watched'}
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
+                    />
+                    {index === currentVideoIndex && (
+                      <div className="absolute inset-0 bg-purple-600 bg-opacity-50 flex items-center justify-center rounded">
+                        <Play className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1 rounded">
+                      {index + 1}
+                    </div>
                   </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h5 className="text-white text-sm font-medium line-clamp-2 mb-1">
+                      {video.snippet.title}
+                    </h5>
+                    <p className="text-gray-400 text-xs">
+                      {video.snippet.channelTitle}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWatched(getVideoId(video));
+                    }}
+                    className={`flex-shrink-0 p-1 rounded transition-colors ${
+                      watchedVideos.has(getVideoId(video))
+                        ? 'text-green-400 hover:text-green-300'
+                        : 'text-gray-500 hover:text-gray-400'
+                    }`}
+                    title={watchedVideos.has(getVideoId(video)) ? 'İzlendi olarak işaretle' : 'İzlenmedi olarak işaretle'}
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Video Player */}
+      <VideoPlayer
+        video={currentVideo}
+        onClose={handleVideoPlayerClose}
+      />
+    </>
   );
 }
