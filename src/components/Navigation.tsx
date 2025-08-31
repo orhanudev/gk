@@ -8,6 +8,8 @@ interface NavigationProps {
   onNavigate: (path: NavigationItem[]) => void;
   onShowSearch: () => void;
   isSearchActive: boolean;
+  onShowPlaylists: () => void;
+  isPlaylistsActive: boolean;
   onShowVideoLink: () => void;
   isVideoLinkActive: boolean;
   onClose?: () => void;
@@ -20,6 +22,8 @@ export function Navigation({
   onNavigate, 
   onShowSearch, 
   isSearchActive, 
+  onShowPlaylists,
+  isPlaylistsActive,
   onShowVideoLink, 
   isVideoLinkActive,
   onClose,
@@ -139,6 +143,21 @@ export function Navigation({
         >
           <Home className="w-5 h-5 mr-3" />
           <span className="font-medium">Ana Sayfa</span>
+        </button>
+        
+        <button
+          onClick={() => {
+            onNavigate([]);
+            onShowPlaylists();
+          }}
+          className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors mt-2 ${
+            isPlaylistsActive
+              ? 'bg-purple-600 text-white'
+              : 'text-gray-300 hover:bg-gray-700'
+          }`}
+        >
+          <List className="w-5 h-5 mr-3" />
+          <span className="font-medium">Listelerim</span>
         </button>
         
         <button
