@@ -13,11 +13,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  useEffect(() => {
-    if (playlist) {
-      setWatchedVideos(new Set(playlist.watchedVideos || []));
-      setCurrentVideoIndex(playlist.currentVideoIndex || 0);
-      
       // Mark the first video as watched when playlist starts
       if (playlist.videos.length > 0) {
         const firstVideoId = getVideoId(playlist.videos[playlist.currentVideoIndex || 0]);
@@ -161,7 +156,10 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={handleClose}
+            onClick={() => {
+              console.log('X button clicked');
+              onClose();
+            }}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
             title="Kapat"
           >

@@ -211,8 +211,8 @@ export default function App() {
   };
 
   const handleClosePlaylist = () => {
+    console.log('Closing playlist...');
     setCurrentPlaylist(null);
-    setCurrentVideo(null);
   };
 
   const handleNavigate = (path: NavigationItem[]) => {
