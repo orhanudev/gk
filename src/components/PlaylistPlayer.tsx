@@ -362,7 +362,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                     : 'hover:bg-gray-700'
                       }`
                 }`}
-                onClick={() => handleVideoSelect(index)}
+                onClick={() => toggleWatched(videoId)}
               >
                 <div className={`flex ${
                   isMobile ? 'flex-col space-y-1' : 'items-start space-x-3'
