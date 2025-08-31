@@ -1,308 +1,256 @@
-import { Group } from '../types';
+import { Group, Subgroup } from '../types';
 
-// Try to access common folder structures
-async function tryAccessFolder(path: string): Promise<boolean> {
-  try {
-    const response = await fetch(path);
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-// Common folder names to check for
-const commonFolders = [
-  'kids', 'çocuk', 'children',
-  'movies', 'filmler', 'film',
-  'music', 'müzik', 'muzik',
-  'tutorials', 'eğitim', 'egitim',
-  'documentaries', 'belgesel',
-  'series', 'dizi',
-  'sports', 'spor',
-  'news', 'haber',
-  'comedy', 'komedi',
-  'animation', 'animasyon',
-  'educational', 'eğitici'
-];
-
-// Try to discover folders by attempting to access them
-async function discoverFolders(): Promise<string[]> {
-  const discoveredFolders: string[] = [];
-  
-  // Check for main category folders
-  for (const folder of commonFolders) {
-    const folderPath = `/content/${folder}`;
-    if (await tryAccessFolder(folderPath)) {
-      discoveredFolders.push(folderPath);
-      
-      // Check for common subfolders
-      const commonSubfolders = [
-        'popular', 'populer', 'popüler',
-        'new', 'yeni',
-        'trending', 'trend',
-        'classic', 'klasik',
-        'action', 'aksiyon',
-        'comedy', 'komedi',
-        'drama',
-        'adventure', 'macera',
-        'family', 'aile',
-        'educational', 'eğitici'
-      ];
-      
-      for (const subfolder of commonSubfolders) {
-        const subfolderPath = `${folderPath}/${subfolder}`;
-        if (await tryAccessFolder(subfolderPath)) {
-          discoveredFolders.push(subfolderPath);
-        }
-      }
-    }
-  }
-  
-  return discoveredFolders;
-}
-
-// Discover JSON files by trying common patterns
-async function discoverJsonFiles(): Promise<string[]> {
+// Recursively discover all folders and JSON files in the content directory
+async function discoverContentStructure(basePath: string = '/content'): Promise<{
+  folders: string[];
+  jsonFiles: string[];
+}> {
+  const folders: string[] = [];
   const jsonFiles: string[] = [];
   
-  // Known existing files
-  const knownFiles = [
-    '/content/Çocuk/kids_populer.json'
-  ];
-  
-  // Check known files first
-  for (const file of knownFiles) {
+  // Function to recursively scan a directory
+  const scanDirectory = async (dirPath: string, depth: number = 0): Promise<void> => {
+    // Prevent infinite recursion
+    if (depth > 10) return;
+    
     try {
-      const response = await fetch(file);
-      if (response.ok) {
-        jsonFiles.push(file);
+      console.log(`Scanning directory: ${dirPath}`);
+      
+      // Try to fetch the directory listing
+      const response = await fetch(dirPath);
+      if (!response.ok) {
+        console.log(`Directory ${dirPath} not accessible`);
+        return;
+      }
+      
+      const html = await response.text();
+      
+      // Parse HTML directory listing to find files and folders
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const links = doc.querySelectorAll('a[href]');
+      
+      for (const link of links) {
+        const href = link.getAttribute('href');
+        if (!href || href === '../' || href === './') continue;
+        
+        const fullPath = `${dirPath}/${href}`.replace(/\/+/g, '/');
+        
+        if (href.endsWith('/')) {
+          // This is a folder
+          const folderPath = href.slice(0, -1); // Remove trailing slash
+          const fullFolderPath = `${dirPath}/${folderPath}`.replace(/\/+/g, '/');
+          
+          console.log(`Found folder: ${fullFolderPath}`);
+          folders.push(fullFolderPath);
+          
+          // Recursively scan this folder
+          await scanDirectory(fullFolderPath, depth + 1);
+        } else if (href.endsWith('.json')) {
+          // This is a JSON file
+          const fullFilePath = fullPath.replace(/\/+/g, '/');
+          console.log(`Found JSON file: ${fullFilePath}`);
+          jsonFiles.push(fullFilePath);
+        }
       }
     } catch (error) {
-      console.warn(`Could not access ${file}`);
-    }
-  }
-  
-  // Try to discover more files in discovered folders
-  const folders = await discoverFolders();
-  
-  for (const folder of folders) {
-    // Try common JSON file names
-    const commonFileNames = [
-      'index.json',
-      'videos.json',
-      'content.json',
-      'data.json',
-      folder.split('/').pop() + '.json', // folder name + .json
-      folder.split('/').pop() + '_videos.json',
-      folder.split('/').pop() + '_content.json'
-    ];
-    
-    for (const fileName of commonFileNames) {
-      const filePath = `${folder}/${fileName}`;
-      try {
-        const response = await fetch(filePath);
-        if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
-          jsonFiles.push(filePath);
+      console.log(`Error scanning ${dirPath}:`, error);
+      
+      // Fallback: try to access some common files/folders directly
+      if (dirPath === '/content') {
+        const commonItems = [
+          '/content/kids',
+          '/content/Çocuk', 
+          '/content/movies',
+          '/content/music',
+          '/content/tutorials',
+          '/content/kids/kids_populer.json',
+          '/content/Çocuk/kids_populer.json'
+        ];
+        
+        for (const item of commonItems) {
+          try {
+            const testResponse = await fetch(item);
+            if (testResponse.ok) {
+              if (item.endsWith('.json')) {
+                jsonFiles.push(item);
+              } else {
+                folders.push(item);
+                // Try to scan this folder too
+                await scanDirectory(item, depth + 1);
+              }
+            }
+          } catch {
+            // Ignore errors for fallback items
+          }
         }
-      } catch (error) {
-        // Silently continue - file doesn't exist
       }
     }
-  }
+  };
   
-  return [...new Set(jsonFiles)]; // Remove duplicates
+  await scanDirectory(basePath);
+  
+  console.log('Discovered folders:', folders);
+  console.log('Discovered JSON files:', jsonFiles);
+  
+  return { folders, jsonFiles };
 }
 
-// Create folder structure from discovered folders
-function createFolderStructure(folders: string[]): Group[] {
+// Create folder structure from discovered paths
+function createFolderStructureFromPaths(folderPaths: string[]): Group[] {
   const groups: Group[] = [];
   
-  // Sort folders to ensure parent folders are processed before children
-  const sortedFolders = folders.sort((a, b) => {
-    const aDepth = a.split('/').length;
-    const bDepth = b.split('/').length;
-    if (aDepth !== bDepth) return aDepth - bDepth;
-    return a.localeCompare(b);
-  });
-  
-  for (const folderPath of sortedFolders) {
+  // Process each folder path
+  for (const folderPath of folderPaths) {
     const pathParts = folderPath.split('/').filter(part => part && part !== 'content');
     if (pathParts.length === 0) continue;
     
-    // Create group name from the first directory
-    const mainCategory = pathParts[0];
-    const groupName = mainCategory.charAt(0).toUpperCase() + mainCategory.slice(1);
-    
-    // Find or create the main group
-    let existingGroup = groups.find(g => g.name === groupName);
-    if (!existingGroup) {
-      existingGroup = {
-        name: groupName,
+    // Create or find the main group
+    const mainCategoryName = pathParts[0];
+    let group = groups.find(g => g.name === mainCategoryName);
+    if (!group) {
+      group = {
+        name: mainCategoryName,
         subgroups: []
       };
-      groups.push(existingGroup);
+      groups.push(group);
     }
     
-    // Create nested folder structure
-    if (pathParts.length > 1) {
-      let currentLevel = existingGroup.subgroups;
+    // Navigate through the path to create nested structure
+    let currentLevel = group.subgroups;
+    
+    for (let i = 1; i < pathParts.length; i++) {
+      const folderName = pathParts[i];
       
-      // Navigate through the path (skip first part which is the main group)
-      for (let i = 1; i < pathParts.length; i++) {
-        const folderName = pathParts[i];
-        const displayName = folderName.charAt(0).toUpperCase() + folderName.slice(1);
-        
-        let folder = currentLevel.find(sg => sg.name === folderName);
-        if (!folder) {
-          folder = {
-            name: folderName,
-            viewName: displayName,
-            channelId: '',
-            videos: [],
-            subgroups: []
-          };
-          currentLevel.push(folder);
-        }
-        
-        if (!folder.subgroups) {
-          folder.subgroups = [];
-        }
-        currentLevel = folder.subgroups;
+      let subgroup = currentLevel.find(sg => sg.name === folderName);
+      if (!subgroup) {
+        subgroup = {
+          name: folderName,
+          viewName: folderName.charAt(0).toUpperCase() + folderName.slice(1),
+          channelId: '',
+          videos: [],
+          subgroups: []
+        };
+        currentLevel.push(subgroup);
       }
+      
+      if (!subgroup.subgroups) {
+        subgroup.subgroups = [];
+      }
+      currentLevel = subgroup.subgroups;
     }
   }
   
   return groups;
 }
 
-export async function loadAllContent(): Promise<Group[]> {
-  try {
-    console.log('Starting dynamic content discovery...');
-    
-    // Discover folders and JSON files
-    const [contentFolders, contentFiles] = await Promise.all([
-      discoverFolders(),
-      discoverJsonFiles()
-    ]);
-    
-    console.log('Discovered content folders:', contentFolders);
-    console.log('Discovered content files:', contentFiles);
-    
-    // Create folder structure first (this will show all folders, even empty ones)
-    const allGroups = createFolderStructure(contentFolders);
-    
-    // If no dynamic discovery worked, create a basic structure
-    if (allGroups.length === 0) {
-      console.log('No folders discovered, creating basic structure...');
+// Load JSON content into the folder structure
+async function loadJsonContentIntoStructure(groups: Group[], jsonFiles: string[]): Promise<void> {
+  for (const filePath of jsonFiles) {
+    try {
+      console.log(`Loading JSON content from: ${filePath}`);
       
-      // Create basic structure with known categories
-      const basicGroups: Group[] = [
-        {
-          name: 'Çocuk',
-          subgroups: [
-            {
-              name: 'populer',
-              viewName: 'Popüler',
-              channelId: '',
-              videos: [],
-              subgroups: []
-            }
-          ]
-        }
-      ];
-      
-      allGroups.push(...basicGroups);
-    }
-    
-    // Now load JSON content into the folder structure
-    for (const filePath of contentFiles) {
-      try {
-        console.log(`Loading content from: ${filePath}`);
-        const response = await fetch(filePath);
-        
-        if (!response.ok) {
-          console.warn(`Failed to load ${filePath}: ${response.status}`);
-          continue;
-        }
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          console.warn(`${filePath} is not a JSON file, skipping`);
-          continue;
-        }
-        
-        const data = await response.json();
-        
-        if (!Array.isArray(data)) {
-          console.warn(`Invalid data format in ${filePath}: expected array`);
-          continue;
-        }
-        
-        // Parse the file path to find the correct location in the structure
-        const pathParts = filePath.split('/').filter(part => part && part !== 'content');
-        pathParts[pathParts.length - 1] = pathParts[pathParts.length - 1].replace('.json', '');
-        
-        // Create group name from the first directory
-        const mainCategory = pathParts[0];
-        const groupName = mainCategory.charAt(0).toUpperCase() + mainCategory.slice(1);
-        
-        // Find the main group
-        let existingGroup = allGroups.find(g => g.name === groupName);
-        if (!existingGroup) {
-          existingGroup = {
-            name: groupName,
-            subgroups: []
-          };
-          allGroups.push(existingGroup);
-        }
-        
-        // Process each item in the JSON data
-        for (const item of data) {
-          if (item.name && item.subgroups && Array.isArray(item.subgroups)) {
-            // Navigate to the correct location in the folder structure
-            let currentLevel = existingGroup.subgroups;
-            
-            // Navigate through the path (skip first part which is the main group, and last part which is the file name)
-            for (let i = 1; i < pathParts.length - 1; i++) {
-              const folderName = pathParts[i];
-              
-              let folder = currentLevel.find(sg => sg.name === folderName);
-              if (!folder) {
-                const displayName = folderName.charAt(0).toUpperCase() + folderName.slice(1);
-                folder = {
-                  name: folderName,
-                  viewName: displayName,
-                  channelId: '',
-                  videos: [],
-                  subgroups: []
-                };
-                currentLevel.push(folder);
-              }
-              
-              if (!folder.subgroups) {
-                folder.subgroups = [];
-              }
-              currentLevel = folder.subgroups;
-            }
-            
-            // Add the actual content to the final level
-            currentLevel.push(...item.subgroups);
-          }
-        }
-      } catch (error) {
-        console.error(`Error loading ${filePath}:`, error);
+      const response = await fetch(filePath);
+      if (!response.ok) {
+        console.warn(`Failed to load ${filePath}: ${response.status}`);
+        continue;
       }
+      
+      // Validate content type
+      const contentType = response.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        console.warn(`${filePath} is not a JSON file, skipping`);
+        continue;
+      }
+      
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        console.warn(`Invalid data format in ${filePath}: expected array`);
+        continue;
+      }
+      
+      // Parse the file path to find where to place the content
+      const pathParts = filePath.split('/').filter(part => part && part !== 'content');
+      const fileName = pathParts[pathParts.length - 1].replace('.json', '');
+      const folderParts = pathParts.slice(0, -1); // Remove filename
+      
+      if (folderParts.length === 0) continue;
+      
+      // Find the target location in the groups structure
+      const mainCategoryName = folderParts[0];
+      const group = groups.find(g => g.name === mainCategoryName);
+      if (!group) continue;
+      
+      // Navigate to the correct subgroup
+      let currentLevel = group.subgroups;
+      for (let i = 1; i < folderParts.length; i++) {
+        const folderName = folderParts[i];
+        const subgroup = currentLevel.find(sg => sg.name === folderName);
+        if (!subgroup) break;
+        
+        if (!subgroup.subgroups) {
+          subgroup.subgroups = [];
+        }
+        currentLevel = subgroup.subgroups;
+      }
+      
+      // Add the JSON content to the structure
+      for (const item of data) {
+        if (item.name && item.subgroups && Array.isArray(item.subgroups)) {
+          currentLevel.push(...item.subgroups);
+        }
+      }
+      
+    } catch (error) {
+      console.error(`Error loading JSON from ${filePath}:`, error);
     }
-    
-    console.log('Final groups structure:', allGroups);
-    return allGroups;
-  } catch (error) {
-    console.error('Error in loadAllContent:', error);
-    return [];
   }
 }
 
-// Helper function to manually add content files (for development)
-export function addContentFile(filePath: string) {
-  console.log(`To add ${filePath}, place the JSON file in the public${filePath} directory`);
+export async function loadAllContent(): Promise<Group[]> {
+  try {
+    console.log('Starting fully dynamic content discovery...');
+    
+    // Discover all folders and JSON files
+    const { folders, jsonFiles } = await discoverContentStructure();
+    
+    // Create folder structure from discovered paths
+    const groups = createFolderStructureFromPaths(folders);
+    
+    // Load JSON content into the structure
+    await loadJsonContentIntoStructure(groups, jsonFiles);
+    
+    // If no content was discovered, create a minimal fallback
+    if (groups.length === 0) {
+      console.log('No content discovered, creating minimal structure...');
+      return [{
+        name: 'Content',
+        subgroups: [{
+          name: 'empty',
+          viewName: 'No Content Found',
+          channelId: '',
+          videos: [],
+          subgroups: []
+        }]
+      }];
+    }
+    
+    console.log('Final dynamic groups structure:', groups);
+    return groups;
+    
+  } catch (error) {
+    console.error('Error in dynamic content loading:', error);
+    
+    // Ultimate fallback - return empty structure
+    return [{
+      name: 'Error',
+      subgroups: [{
+        name: 'error',
+        viewName: 'Content Loading Error',
+        channelId: '',
+        videos: [],
+        subgroups: []
+      }]
+    }];
+  }
 }
