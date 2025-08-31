@@ -42,6 +42,15 @@ export function Navigation({
     const isExpanded = expandedGroups.has(fullPath);
     const hasSubgroups = subgroup.subgroups && subgroup.subgroups.length > 0;
     const hasVideos = subgroup.videos && subgroup.videos.length > 0;
+    
+    // Calculate total video count for this subgroup (including nested)
+    const getVideoCount = (sg: Subgroup): number => {
+      const directVideos = sg.videos?.length || 0;
+      const nestedVideos = sg.subgroups?.reduce((sum, nested) => sum + getVideoCount(nested), 0) || 0;
+      return directVideos + nestedVideos;
+    };
+    
+    const videoCount = getVideoCount(subgroup);
 
     return (
       <div key={fullPath} className="ml-4">
@@ -78,9 +87,9 @@ export function Navigation({
             <div className="w-4 h-4 mr-2" />
           )}
           <span className="text-sm truncate">{subgroup.viewName || subgroup.name}</span>
-          {hasVideos && (
+          {videoCount > 0 && (
             <span className="ml-auto text-xs text-gray-400">
-              {subgroup.videos.length}
+              {videoCount}
             </span>
           )}
         </div>
