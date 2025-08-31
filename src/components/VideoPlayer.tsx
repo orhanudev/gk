@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, Maximize2, Minimize2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { X, Maximize2, Minimize2, Play, Pause, Volume2, VolumeX, List } from 'lucide-react';
 import { Video } from '../types';
 
 interface VideoPlayerProps {
   video: Video | null;
   onClose: () => void;
+  onAddToPlaylist?: (video: Video) => void;
 }
 
-export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
+export function VideoPlayer({ video, onClose, onAddToPlaylist }: VideoPlayerProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,6 +44,15 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
           </div>
           
           <div className="flex items-center">
+            {onAddToPlaylist && (
+              <button
+                onClick={() => onAddToPlaylist(video)}
+                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 mr-2"
+                title="Oynatma listesine ekle"
+              >
+                <List className="w-5 h-5" />
+              </button>
+            )}
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"

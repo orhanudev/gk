@@ -322,6 +322,7 @@ export default function App() {
       <VideoPlayer
         video={currentVideo}
         onClose={() => setCurrentVideo(null)}
+        onAddToPlaylist={setPlaylistModalVideo}
       />
 
       {/* Playlist Player */}
