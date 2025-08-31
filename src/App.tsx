@@ -214,6 +214,12 @@ export default function App() {
     setCurrentPlaylist(null);
   };
 
+  // Force close playlist - more direct approach
+  const forceClosePlaylist = () => {
+    setCurrentPlaylist(null);
+    setCurrentVideo(null);
+  };
+
   const handleNavigate = (path: NavigationItem[]) => {
     setCurrentPath(path);
     setCurrentView('videos'); // Always switch to videos view when navigating
@@ -610,7 +616,7 @@ export default function App() {
       {/* Playlist Player */}
       <PlaylistPlayer
         playlist={currentPlaylist}
-        onClose={handleClosePlaylist}
+        onClose={forceClosePlaylist}
         onUpdatePlaylist={handleUpdatePlaylist}
       />
 
