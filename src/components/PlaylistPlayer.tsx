@@ -44,94 +44,13 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [autoplay, setAutoplay] = useState(true);
   const [shuffleMode, setShuffleMode] = useState(false);
 
-  // Check for mobile screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    if (playlist) {
-      setCurrentVideoIndex(playlist.currentVideoIndex || 0);
-      setWatchedVideos(new Set(playlist.watchedVideos || []));
-      
-      // Mark the first video as watched when playlist starts
-      if (playlist.videos.length > 0) {
-        const firstVideoId = getVideoId(playlist.videos[playlist.currentVideoIndex || 0]);
-        const newWatchedVideos = new Set(playlist.watchedVideos || []);
-        newWatchedVideos.add(firstVideoId);
-        setWatchedVideos(newWatchedVideos);
-        
-        // Update the playlist immediately
-        const updatedPlaylist = {
-          ...playlist,
-          watchedVideos: newWatchedVideos
-        };
-        onUpdatePlaylist(updatedPlaylist);
-      }
-    }
-  }, [playlist, onUpdatePlaylist]);
-
-  // Keyboard event handler
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (isFullscreen) {
-          setIsFullscreen(false);
-        } else {
-          onClose();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, onClose]);
-
-  // Auto-advance to next video
-  useEffect(() => {
-    if (!autoplay || !playlist) return;
-
-    const timer = setTimeout(() => {
-      if (shuffleMode) {
-        // Random next video
-        const availableIndices = playlist.videos
-          .map((_, index) => index)
-          .filter(index => index !== currentVideoIndex);
-        
-        if (availableIndices.length > 0) {
-          const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-          handleVideoSelect(randomIndex);
-        }
-      } else {
-        // Sequential play
-        if (currentVideoIndex < playlist.videos.length - 1) {
-          handleNext();
-        }
-      }
-    }, 5000); // Wait 5 seconds then auto-advance (simulating video end)
-
-    return () => clearTimeout(timer);
-  }, [currentVideoIndex, autoplay, shuffleMode, playlist]);
-
   // Early return AFTER all hooks are declared
   if (!playlist || !playlist.videos.length) return null;
 
+  // Helper functions defined after hooks but before useEffect that depends on them
   const getVideoId = (video: Video): string => {
     return video.id.videoId || String(video.id) || '';
   };
-
-  const currentVideo = playlist.videos[currentVideoIndex];
-  
-  const currentVideoId = getVideoId(currentVideo);
-  
-  // Create embed URL with autoplay parameters
-  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
 
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
@@ -208,6 +127,101 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
+
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (playlist) {
+      setCurrentVideoIndex(playlist.currentVideoIndex || 0);
+      setWatchedVideos(new Set(playlist.watchedVideos || []));
+      
+      // Mark the first video as watched when playlist starts
+      if (playlist.videos.length > 0) {
+        const firstVideoId = getVideoId(playlist.videos[playlist.currentVideoIndex || 0]);
+        const newWatchedVideos = new Set(playlist.watchedVideos || []);
+        newWatchedVideos.add(firstVideoId);
+        setWatchedVideos(newWatchedVideos);
+        
+        // Update the playlist immediately
+        const updatedPlaylist = {
+          ...playlist,
+          watchedVideos: newWatchedVideos
+        };
+        onUpdatePlaylist(updatedPlaylist);
+      }
+    }
+  }, [playlist, onUpdatePlaylist]);
+
+  // Keyboard event handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isFullscreen) {
+          setIsFullscreen(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, onClose]);
+
+  // Auto-advance to next video
+  useEffect(() => {
+    if (!autoplay || !playlist) return;
+
+    // Listen for YouTube player events to detect when video ends
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        // YouTube player sends state changes: 0 = ended, 1 = playing, 2 = paused
+        if (data.event === 'video-progress' && data.info?.playerState === 0) {
+          // Video ended, advance to next
+          if (shuffleMode) {
+            // Random next video
+            const availableIndices = playlist.videos
+              .map((_, index) => index)
+              .filter(index => index !== currentVideoIndex);
+            
+            if (availableIndices.length > 0) {
+              const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+              handleVideoSelect(randomIndex);
+            }
+          } else {
+            // Sequential play
+            if (currentVideoIndex < playlist.videos.length - 1) {
+              handleNext();
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [currentVideoIndex, autoplay, shuffleMode, playlist]);
+
+  const currentVideo = playlist.videos[currentVideoIndex];
+  
+  const currentVideoId = getVideoId(currentVideo);
+  
+  // Create embed URL with autoplay parameters
+  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-90 z-50 ${
@@ -341,7 +355,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        shareVideo(video, true);
+                        shareVideo(video);
                       }}
                       className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} text-gray-500 hover:text-gray-400`}
                       title="GK'da Paylaş"
