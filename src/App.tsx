@@ -41,6 +41,7 @@ export default function App() {
   const [playlistCreationType, setPlaylistCreationType] = useState<'all' | 'selected'>('all');
   const [searchResults, setSearchResults] = useState<Video[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [forceClosePlaylist, setForceClosePlaylist] = useState(0);
 
   // Check for mobile screen size
   React.useEffect(() => {
@@ -56,6 +57,18 @@ export default function App() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Force close playlist when forceClosePlaylist changes
+  React.useEffect(() => {
+    if (forceClosePlaylist > 0) {
+      setCurrentPlaylist(null);
+      setCurrentVideo(null);
+    }
+  }, [forceClosePlaylist]);
+
+  const handleForceClosePlaylist = () => {
+    console.log('Force closing playlist...');
+    setForceClosePlaylist(prev => prev + 1);
+  };
   const currentVideos = useMemo(() => {
     if (currentPath.length > 0) {
       const currentItem = currentPath[currentPath.length - 1];
@@ -210,10 +223,6 @@ export default function App() {
     updatePlaylist(updatedPlaylist);
   };
 
-  const handleClosePlaylist = () => {
-    console.log('Closing playlist...');
-    setCurrentPlaylist(null);
-  };
 
   const handleNavigate = (path: NavigationItem[]) => {
     setCurrentPath(path);
@@ -615,7 +624,7 @@ export default function App() {
       {/* Playlist Player */}
       <PlaylistPlayer
         playlist={currentPlaylist}
-        onClose={handleClosePlaylist}
+        onClose={handleForceClosePlaylist}
         onUpdatePlaylist={handleUpdatePlaylist}
       />
 
