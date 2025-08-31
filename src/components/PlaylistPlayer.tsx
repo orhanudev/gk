@@ -97,27 +97,40 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   useEffect(() => {
     if (!autoplay || !playlist) return;
 
-    const timer = setTimeout(() => {
-      if (shuffleMode) {
-        // Random next video
-        const availableIndices = playlist.videos
-          .map((_, index) => index)
-          .filter(index => index !== currentVideoIndex);
-        
-        if (availableIndices.length > 0) {
-          const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-          handleVideoSelect(randomIndex);
+    // Listen for YouTube player events to detect when video ends
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      
+      try {
+        const data = JSON.parse(event.data);
+        // YouTube player sends state changes: 0 = ended, 1 = playing, 2 = paused
+        if (data.event === 'video-progress' && data.info?.playerState === 0) {
+          // Video ended, advance to next
+          if (shuffleMode) {
+            // Random next video
+            const availableIndices = playlist.videos
+              .map((_, index) => index)
+              .filter(index => index !== currentVideoIndex);
+            
+            if (availableIndices.length > 0) {
+              const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+              handleVideoSelect(randomIndex);
+            }
+          } else {
+            // Sequential play
+            if (currentVideoIndex < playlist.videos.length - 1) {
+              handleNext();
+            }
+          }
         }
-      } else {
-        // Sequential play
-        if (currentVideoIndex < playlist.videos.length - 1) {
-          handleNext();
-        }
+      } catch (e) {
+        // Ignore parsing errors
       }
-    }, 5000); // Wait 5 seconds then auto-advance (simulating video end)
+    };
 
-    return () => clearTimeout(timer);
-  }, [currentVideoIndex, autoplay, shuffleMode, playlist]);
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [currentVideoIndex, autoplay, shuffleMode, playlist, handleNext]);
 
   // Early return AFTER all hooks are declared
   if (!playlist || !playlist.videos.length) return null;
