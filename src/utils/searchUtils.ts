@@ -29,13 +29,10 @@ export function normalizeSearchText(text: string): string {
 }
 
 export function searchMatch(searchTerm: string, targetText: string): boolean {
-  // Normalize both search term and target text
-  const normalizedSearch = normalizeSearchText(searchTerm);
-  const normalizedTarget = normalizeSearchText(targetText);
+  // Normalize and lowercase both sides
+  const normalizedSearch = normalizeSearchText(searchTerm.toLowerCase());
+  const normalizedTarget = normalizeSearchText(targetText.toLowerCase());
   
-  // Split search term into words for better matching
-  const searchWords = normalizedSearch.split(/\s+/).filter(word => word.length > 0);
-  
-  // Check if all search words are found in the target text
-  return searchWords.every(word => normalizedTarget.includes(word));
+  // Simple contains check after normalization
+  return normalizedTarget.includes(normalizedSearch);
 }
