@@ -18,7 +18,9 @@ export function VideoCard({
   onAddToPlaylist, 
   isWatched = false, 
   onToggleWatched,
-  isSelectionMode = false
+  isSelectionMode = false,
+  isSelected = false,
+  onToggleSelection
 }: VideoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -44,12 +46,15 @@ export function VideoCard({
     <div 
       className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 group ${
         isSelectionMode 
-          ? 'cursor-default' 
+          ? 'cursor-pointer' 
           : 'hover:shadow-xl transform hover:scale-105 cursor-pointer'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={isSelectionMode ? undefined : () => onPlayVideo(video)}
+      onClick={isSelectionMode 
+        ? () => onToggleSelection && onToggleSelection(video.id.videoId || video.id)
+        : () => onPlayVideo(video)
+      }
     >
       <div className="relative">
         <img
@@ -78,18 +83,30 @@ export function VideoCard({
         )}
         
         {/* Play Button Overlay */}
-        <div className={`absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center transition-opacity duration-300 ${
-          isHovered && !isSelectionMode ? 'opacity-100' : 'opacity-0'
+        <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+          isSelectionMode 
+            ? `bg-black bg-opacity-30 ${isSelected ? 'opacity-100' : 'opacity-0'}`
+            : `bg-black bg-opacity-50 ${isHovered ? 'opacity-100' : 'opacity-0'}`
         }`}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlayVideo(video);
-            }}
-            className="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full transition-all duration-200 transform hover:scale-110"
-          >
-            <Play className="w-8 h-8 fill-current" />
-          </button>
+          {isSelectionMode ? (
+            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+              isSelected
+                ? 'bg-purple-600 border-purple-600 text-white'
+                : 'bg-gray-800 bg-opacity-80 border-gray-400 text-transparent'
+            }`}>
+              <Check className="w-5 h-5" />
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPlayVideo(video);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full transition-all duration-200 transform hover:scale-110"
+            >
+              <Play className="w-8 h-8 fill-current" />
+            </button>
+          )}
         </div>
       </div>
       

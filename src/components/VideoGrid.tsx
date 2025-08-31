@@ -58,6 +58,8 @@ export function VideoGrid({
             onPlayVideo={isSelectionMode ? () => {} : onPlayVideo}
             onAddToPlaylist={onAddToPlaylist}
             isSelectionMode={isSelectionMode}
+            isSelected={selectedVideos.has(video.id.videoId || video.id)}
+            onToggleSelection={onToggleSelection}
           />
         </div>
       ))}

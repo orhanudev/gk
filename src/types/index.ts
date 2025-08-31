@@ -45,3 +45,14 @@ export interface Playlist {
   watchedVideos?: Set<string>;
   currentVideoIndex?: number;
 }
+
+export interface VideoCardProps {
+  video: Video;
+  onPlayVideo: (video: Video) => void;
+  onAddToPlaylist: (video: Video) => void;
+  isWatched?: boolean;
+  onToggleWatched?: (video: Video) => void;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (videoId: string) => void;
+}

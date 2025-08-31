@@ -18,6 +18,21 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     if (playlist) {
       setWatchedVideos(new Set(playlist.watchedVideos || []));
       setCurrentVideoIndex(playlist.currentVideoIndex || 0);
+      
+      // Mark the first video as watched when playlist starts
+      if (playlist.videos.length > 0) {
+        const firstVideoId = getVideoId(playlist.videos[playlist.currentVideoIndex || 0]);
+        const newWatchedVideos = new Set(playlist.watchedVideos || []);
+        newWatchedVideos.add(firstVideoId);
+        setWatchedVideos(newWatchedVideos);
+        
+        // Update the playlist immediately
+        const updatedPlaylist = {
+          ...playlist,
+          watchedVideos: newWatchedVideos
+        };
+        onUpdatePlaylist(updatedPlaylist);
+      }
     }
   }, [playlist]);
 
