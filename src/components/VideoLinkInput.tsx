@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, Play, Plus } from 'lucide-react';
+import { Link, Play, Plus, Youtube } from 'lucide-react';
 import { extractVideoIdFromUrl, createVideoFromUrl } from '../utils/videoUtils';
 import { Video } from '../types';
 
@@ -11,10 +11,12 @@ interface VideoLinkInputProps {
 export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputProps) {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (!url.trim()) {
       setError('Lütfen bir YouTube URL\'si girin');
@@ -29,11 +31,13 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputP
 
     const video = createVideoFromUrl(url);
     onPlayVideo(video);
+    setSuccess('Video oynatılıyor...');
     setUrl('');
   };
 
   const handleAddToPlaylist = () => {
     setError('');
+    setSuccess('');
 
     if (!url.trim()) {
       setError('Lütfen bir YouTube URL\'si girin');
@@ -48,6 +52,7 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputP
 
     const video = createVideoFromUrl(url);
     onAddToPlaylist(video);
+    setSuccess('Video oynatma listesi seçimine eklendi');
     setUrl('');
   };
 
@@ -55,7 +60,7 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputP
     <div className="max-w-2xl mx-auto">
       <div className="bg-gray-800 rounded-lg p-6">
         <div className="flex items-center mb-6">
-          <Link className="w-6 h-6 text-purple-400 mr-3" />
+          <Youtube className="w-6 h-6 text-red-500 mr-3" />
           <h2 className="text-xl font-bold text-white">YouTube Video Ekle</h2>
         </div>
 
@@ -78,6 +83,12 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputP
             <div className="text-red-400 text-sm">{error}</div>
           )}
 
+          {success && (
+            <div className="text-green-400 text-sm bg-green-900/20 border border-green-500/30 rounded p-2">
+              {success}
+            </div>
+          )}
+
           <div className="flex gap-3">
             <button
               type="submit"
@@ -98,12 +109,18 @@ export function VideoLinkInput({ onPlayVideo, onAddToPlaylist }: VideoLinkInputP
         </form>
 
         <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-          <h3 className="text-white font-medium mb-2">Desteklenen Formatlar:</h3>
+          <h3 className="text-white font-medium mb-3">Desteklenen Formatlar:</h3>
           <ul className="text-gray-300 text-sm space-y-1">
             <li>• https://www.youtube.com/watch?v=VIDEO_ID</li>
             <li>• https://youtu.be/VIDEO_ID</li>
             <li>• https://m.youtube.com/watch?v=VIDEO_ID</li>
           </ul>
+          <div className="mt-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded">
+            <p className="text-blue-200 text-xs">
+              <strong>İpucu:</strong> YouTube linkini yapıştırın ve "Oynat" butonuna tıklayın. 
+              Video kendi oynatıcımızda açılacak.
+            </p>
+          </div>
         </div>
       </div>
     </div>
