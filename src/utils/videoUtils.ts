@@ -52,7 +52,7 @@ export function createVideoFromUrl(url: string) {
     snippet: {
       publishedAt: new Date().toISOString(),
       channelId: '',
-      title: 'YouTube Video',
+      title: `Video: ${videoId}`,
       description: '',
       thumbnails: {
         default: { url: `https://img.youtube.com/vi/${videoId}/default.jpg` },
@@ -65,7 +65,7 @@ export function createVideoFromUrl(url: string) {
       liveBroadcastContent: 'none',
       defaultLanguage: '',
       localized: {
-        title: 'YouTube Video',
+        title: `Video: ${videoId}`,
         description: ''
       },
       defaultAudioLanguage: ''
