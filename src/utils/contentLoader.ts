@@ -90,32 +90,54 @@ async function discoverContent(): Promise<{folders: string[], files: string[]}> 
   if (folders.length === 0 && files.length === 0) {
     console.log('Trying basic file discovery...');
     
-    // Check if there are any files we can access by trying common patterns
-    const testPaths = [
-      'kids_populer.json',
-      'Çocuk/kids_populer.json',
-      'cocuk/kids_populer.json'
+    // Try to discover all directories and files by testing common Turkish folder names
+    const commonFolders = [
+      'Çocuk', 'cocuk', 'Cocuk', 'COCUK',
+      'Genç', 'genc', 'Genc', 'GENC', 
+      'Yetişkin', 'yetiskin', 'Yetiskin', 'YETISKIN',
+      'Müzik', 'muzik', 'Muzik', 'MUZIK',
+      'Film', 'film', 'FILM',
+      'Belgesel', 'belgesel', 'BELGESEL',
+      'Eğitim', 'egitim', 'Egitim', 'EGITIM',
+      'Spor', 'spor', 'SPOR'
     ];
     
-    for (const testPath of testPaths) {
+    // Test each potential folder
+    for (const folderName of commonFolders) {
       try {
-        const response = await fetch(`/content/${testPath}`);
+        const response = await fetch(`/content/${folderName}/`, { method: 'HEAD' });
         if (response.ok) {
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
-          files.push(testPath);
-          console.log(`Found accessible file: ${testPath}`);
-          
-          // Infer folder structure
-          const pathParts = testPath.split('/');
-          if (pathParts.length > 1) {
-            pathParts.pop(); // Remove filename
-            const folderPath = pathParts.join('/');
-            if (!folders.includes(folderPath)) {
-              folders.push(folderPath);
-              console.log(`Inferred folder: ${folderPath}`);
-            }
+          if (!folders.includes(folderName)) {
+            folders.push(folderName);
+            console.log(`Found accessible folder: ${folderName}`);
+            
+            // Try to scan this folder for files
+            await scanSubfolder(folderName, folders, files);
           }
+          }
+        }
+      } catch (error) {
+        // Folder doesn't exist, continue
+      }
+    }
+    
+    // Also try to find JSON files directly in the root
+    const commonFiles = [
+      'kids_populer.json',
+      'genc_populer.json', 
+      'yetiskin_populer.json',
+      'muzik_populer.json'
+    ];
+    
+    for (const fileName of commonFiles) {
+      try {
+        const response = await fetch(`/content/${fileName}`, { method: 'HEAD' });
+        if (response.ok) {
+          if (!files.includes(fileName)) {
+            files.push(fileName);
+            console.log(`Found accessible file: ${fileName}`);
           }
         }
       } catch (error) {
