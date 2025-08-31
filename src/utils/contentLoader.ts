@@ -61,12 +61,13 @@ async function loadManifest(): Promise<string[]> {
   }
 }
 
-function buildGroupsFromFiles(filePaths: string[]): Group[] {
+function buildGroupStructureFromPaths(filePaths: string[]): Group[] {
+  console.log('🏗️ Building group structure from paths:', filePaths);
+  
   const groups: Group[] = [];
   const groupMap = new Map<string, Group>();
   
-  console.log('🏗️ Building groups from file paths:', filePaths);
-  
+  // Parse each file path and build the hierarchy
   filePaths.forEach(filePath => {
     // Remove /content/ prefix if present
     const cleanPath = filePath.replace(/^\/content\//, '');
@@ -79,6 +80,9 @@ function buildGroupsFromFiles(filePaths: string[]): Group[] {
     
     const groupName = pathParts[0];
     const fileName = pathParts[pathParts.length - 1].replace('.json', '');
+    const subfolderParts = pathParts.slice(1, -1); // Everything between group and file
+    
+    console.log(`Processing: group="${groupName}", subfolders=[${subfolderParts.join(', ')}], file="${fileName}"`);
     
     // Get or create group
     let group = groupMap.get(groupName);
@@ -89,51 +93,113 @@ function buildGroupsFromFiles(filePaths: string[]): Group[] {
       };
       groupMap.set(groupName, group);
       groups.push(group);
+      console.log(`Created group: ${groupName}`);
     }
     
-    // Create subgroup for this file
-    const subgroup: Subgroup = {
-      name: fileName,
-      viewName: fileName,
-      channelId: '',
-      videos: [],
-      subgroups: [],
-      filePath: filePath
-    };
+    // Navigate/create the subfolder hierarchy
+    let currentSubgroups = group.subgroups;
+    let currentPath = groupName;
     
-    group.subgroups.push(subgroup);
+    // Create subfolders if they exist
+    subfolderParts.forEach(subfolderName => {
+      currentPath += `/${subfolderName}`;
+      
+      let existingSubgroup = currentSubgroups.find(sg => sg.name === subfolderName);
+      if (!existingSubgroup) {
+        existingSubgroup = {
+          name: subfolderName,
+          viewName: subfolderName,
+          channelId: '',
+          videos: [],
+          subgroups: []
+        };
+        currentSubgroups.push(existingSubgroup);
+        console.log(`Created subfolder: ${currentPath}`);
+      }
+      
+      currentSubgroups = existingSubgroup.subgroups!;
+    });
+    
+    // Create the final subgroup for the JSON file
+    const finalPath = currentPath + (subfolderParts.length > 0 ? `/${fileName}` : `/${fileName}`);
+    let fileSubgroup = currentSubgroups.find(sg => sg.name === fileName);
+    if (!fileSubgroup) {
+      fileSubgroup = {
+        name: fileName,
+        viewName: fileName,
+        channelId: '',
+        videos: [],
+        subgroups: [],
+        _filePath: filePath // Temporary property to track which file to load
+      };
+      currentSubgroups.push(fileSubgroup);
+      console.log(`Created file subgroup: ${finalPath}`);
+    }
   });
   
-  console.log(`✅ Built ${groups.length} groups:`, groups.map(g => ({ name: g.name, subgroups: g.subgroups.length })));
+  console.log(`✅ Built ${groups.length} groups with hierarchy`);
   return groups;
 }
 
-async function loadContentForGroups(groups: Group[]): Promise<void> {
-  console.log('📥 Loading content for all groups...');
+async function loadContentForSubgroup(subgroup: Subgroup): Promise<void> {
+  const filePath = (subgroup as any)._filePath;
+  if (!filePath) return;
   
-  for (const group of groups) {
-    console.log(`📥 Loading content for group: ${group.name}`);
+  console.log(`📥 Loading content for subgroup "${subgroup.name}" from ${filePath}`);
+  
+  const content = await loadJsonFile(filePath);
+  
+  content.forEach(item => {
+    if (item.name && item.subgroups && Array.isArray(item.subgroups)) {
+      // This is a group container, merge its subgroups
+      item.subgroups.forEach((sub: any) => {
+        const existingSubgroup = subgroup.subgroups?.find(sg => sg.name === sub.name);
+        if (existingSubgroup) {
+          // Merge videos if subgroup already exists
+          if (sub.videos && Array.isArray(sub.videos)) {
+            existingSubgroup.videos = existingSubgroup.videos || [];
+            existingSubgroup.videos.push(...sub.videos);
+          }
+          if (sub.subgroups && Array.isArray(sub.subgroups)) {
+            existingSubgroup.subgroups = existingSubgroup.subgroups || [];
+            existingSubgroup.subgroups.push(...sub.subgroups);
+          }
+        } else {
+          // Add new subgroup
+          subgroup.subgroups = subgroup.subgroups || [];
+          subgroup.subgroups.push({
+            name: sub.name,
+            viewName: sub.viewName || sub.name,
+            channelId: sub.channelId || '',
+            videos: sub.videos || [],
+            subgroups: sub.subgroups || []
+          });
+        }
+      });
+    } else if (item.videos && Array.isArray(item.videos)) {
+      // Direct videos in this file
+      subgroup.videos = subgroup.videos || [];
+      subgroup.videos.push(...item.videos);
+    } else if (item.subgroups && Array.isArray(item.subgroups)) {
+      // Direct subgroups in this file
+      subgroup.subgroups = subgroup.subgroups || [];
+      subgroup.subgroups.push(...item.subgroups);
+    }
+  });
+  
+  // Clean up the temporary file path property
+  delete (subgroup as any)._filePath;
+  
+  console.log(`✅ Loaded content for "${subgroup.name}": ${subgroup.videos?.length || 0} videos, ${subgroup.subgroups?.length || 0} subgroups`);
+}
+
+async function loadContentRecursively(subgroups: Subgroup[]): Promise<void> {
+  for (const subgroup of subgroups) {
+    await loadContentForSubgroup(subgroup);
     
-    for (const subgroup of group.subgroups) {
-      if ((subgroup as any).filePath) {
-        console.log(`📥 Loading content for subgroup: ${subgroup.name} from ${(subgroup as any).filePath}`);
-        
-        const content = await loadJsonFile((subgroup as any).filePath);
-        
-        content.forEach(item => {
-          if (item.subgroups && Array.isArray(item.subgroups)) {
-            subgroup.subgroups = subgroup.subgroups || [];
-            subgroup.subgroups.push(...item.subgroups);
-          }
-          if (item.videos && Array.isArray(item.videos)) {
-            subgroup.videos = subgroup.videos || [];
-            subgroup.videos.push(...item.videos);
-          }
-        });
-        
-        // Clean up the temporary filePath property
-        delete (subgroup as any).filePath;
-      }
+    // Recursively load content for nested subgroups
+    if (subgroup.subgroups && subgroup.subgroups.length > 0) {
+      await loadContentRecursively(subgroup.subgroups);
     }
   }
 }
@@ -150,18 +216,37 @@ export async function loadAllContent(): Promise<Group[]> {
       return [];
     }
     
+    console.log('📁 Files to process:', filePaths);
+    
     // Build group structure from file paths
-    const groups = buildGroupsFromFiles(filePaths);
+    const groups = buildGroupStructureFromPaths(filePaths);
     
     if (groups.length === 0) {
       console.log('❌ No groups could be built from manifest');
       return [];
     }
     
-    // Load actual content from the files
-    await loadContentForGroups(groups);
+    console.log('🏗️ Built initial group structure:', groups.map(g => ({ 
+      name: g.name, 
+      subgroups: g.subgroups.length 
+    })));
     
-    console.log('✅ Content loading complete:', groups);
+    // Load actual content from the files
+    for (const group of groups) {
+      console.log(`📥 Loading content for group: ${group.name}`);
+      await loadContentRecursively(group.subgroups);
+    }
+    
+    console.log('✅ Content loading complete. Final structure:');
+    groups.forEach(group => {
+      console.log(`Group: ${group.name}`);
+      const logSubgroup = (sg: Subgroup, indent = '  ') => {
+        console.log(`${indent}${sg.viewName || sg.name} (${sg.videos?.length || 0} videos, ${sg.subgroups?.length || 0} subgroups)`);
+        sg.subgroups?.forEach(sub => logSubgroup(sub, indent + '  '));
+      };
+      group.subgroups.forEach(sg => logSubgroup(sg));
+    });
+    
     return groups;
     
   } catch (error) {
