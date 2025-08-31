@@ -205,22 +205,8 @@ export function Navigation({
           }`}
         >
           <Search className="w-5 h-5 mr-3" />
-          <span className="font-medium">YT Search</span>
+          <span className="font-medium">Video Ara</span>
         </button>
-        
-        {/* Video Search Input */}
-        <div className="mt-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Video ara..."
-              className="w-full bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none text-sm"
-            />
-          </div>
-        </div>
       </div>
 
       <div className="space-y-2 flex-1 overflow-y-auto">

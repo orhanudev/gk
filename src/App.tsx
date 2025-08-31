@@ -39,6 +39,8 @@ export default function App() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
   const [playlistCreationType, setPlaylistCreationType] = useState<'all' | 'selected'>('all');
+  const [searchResults, setSearchResults] = useState<Video[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Check for mobile screen size
   React.useEffect(() => {
@@ -94,14 +96,52 @@ export default function App() {
     return [];
   }, [groups, currentPath]);
 
-  const filteredVideos = useMemo(() => {
-    if (!searchQuery) return currentVideos;
+  // Function to search through all videos in all groups
+  const searchAllVideos = (query: string): Video[] => {
+    if (!query.trim()) return [];
     
-    return currentVideos.filter(video =>
-      video.snippet.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      video.snippet.channelTitle.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [currentVideos, searchQuery]);
+    const allVideos: Video[] = [];
+    const searchTerm = query.toLowerCase();
+    
+    const collectVideos = (subgroups: any[]) => {
+      subgroups.forEach(subgroup => {
+        if (subgroup.videos) {
+          subgroup.videos.forEach((video: Video) => {
+            if (video.snippet.title.toLowerCase().includes(searchTerm) ||
+                video.snippet.channelTitle.toLowerCase().includes(searchTerm)) {
+              allVideos.push(video);
+            }
+          });
+        }
+        if (subgroup.subgroups) {
+          collectVideos(subgroup.subgroups);
+        }
+      });
+    };
+    
+    groups.forEach(group => {
+      collectVideos(group.subgroups);
+    });
+    
+    return allVideos;
+  };
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    const results = searchAllVideos(searchQuery);
+    setSearchResults(results);
+    setIsSearching(false);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch();
+  };
 
   const handleCreatePlaylist = (name: string, videos: Video[] = []) => {
     const videosToAdd = videos.length > 0 ? videos : (playlistModalVideo ? [playlistModalVideo] : []);
@@ -114,9 +154,11 @@ export default function App() {
 
   const handleCreatePlaylistFromVideos = (name: string) => {
     if (playlistCreationType === 'all') {
-      createPlaylist(name, filteredVideos);
+      const videosToUse = currentView === 'search' ? searchResults : currentVideos;
+      createPlaylist(name, videosToUse);
     } else {
-      const selectedVideoObjects = filteredVideos.filter(video => 
+      const videosToUse = currentView === 'search' ? searchResults : currentVideos;
+      const selectedVideoObjects = videosToUse.filter(video => 
         selectedVideos.has(video.id.videoId || video.id)
       );
       createPlaylist(name, selectedVideoObjects);
@@ -137,10 +179,11 @@ export default function App() {
   };
 
   const handleSelectAll = () => {
-    if (selectedVideos.size === filteredVideos.length) {
+    const videosToUse = currentView === 'search' ? searchResults : currentVideos;
+    if (selectedVideos.size === videosToUse.length) {
       setSelectedVideos(new Set());
     } else {
-      const allVideoIds = filteredVideos.map(video => video.id.videoId || video.id);
+      const allVideoIds = videosToUse.map(video => video.id.videoId || video.id);
       setSelectedVideos(new Set(allVideoIds));
     }
   };
@@ -217,8 +260,8 @@ export default function App() {
             isPlaylistsActive={currentView === 'playlists'}
             onShowVideoLink={() => setCurrentView('videolink')}
             isVideoLinkActive={currentView === 'videolink'}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
+            searchQuery=""
+            onSearchChange={() => {}}
             onAddToPlaylist={setPlaylistModalVideo}
             onAddToPlaylistModal={setPlaylistModalVideo}
             isMobile={isMobile}
@@ -290,22 +333,39 @@ export default function App() {
         {/* Content */}
         <main className="flex-1 p-3 md:p-6 overflow-y-auto">
           {currentView === 'search' ? (
-            <YouTubeSearch
-              onAddToPlaylistModal={setPlaylistModalVideo}
-              onPlayVideo={setCurrentVideo}
-            />
-          ) : currentView === 'videolink' ? (
-            <VideoLinkInput
-              onPlayVideo={setCurrentVideo}
-              onAddToPlaylist={setPlaylistModalVideo}
-              onAddToPlaylistModal={setPlaylistModalVideo}
-            />
-          ) : currentView === 'videos' ? (
-            <>
-              <Breadcrumb path={currentPath} onNavigate={handleNavigate} />
-              
-              {/* Playlist Creation Buttons */}
-              {currentVideos.length > 0 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center justify-center">
+                  <Search className="w-8 h-8 mr-3 text-blue-500" />
+                  Video Ara
+                </h2>
+                <p className="text-gray-400 mb-6">
+                  Tüm videolar arasında arama yapın
+                </p>
+              </div>
+
+              <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Video ara... (örn: 'Afacanlar')"
+                    className="w-full bg-gray-800 text-white pl-12 pr-24 py-4 rounded-xl border border-gray-700 focus:border-blue-500 focus:outline-none text-lg"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!searchQuery.trim() || isSearching}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors disabled:cursor-not-allowed"
+                  >
+                    {isSearching ? 'Arıyor...' : 'Ara'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Playlist Creation Buttons for Search Results */}
+              {searchResults.length > 0 && (
                 <div className="mb-6 space-y-3">
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -316,7 +376,7 @@ export default function App() {
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
                     >
                       <List className="w-4 h-4" />
-                      <span>Tüm Videoları Liste Yap ({filteredVideos.length})</span>
+                      <span>Tüm Sonuçları Liste Yap ({searchResults.length})</span>
                     </button>
                     
                     <button
@@ -340,7 +400,119 @@ export default function App() {
                           onClick={handleSelectAll}
                           className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                         >
-                          {selectedVideos.size === filteredVideos.length ? 'Hiçbirini Seçme' : 'Hepsini Seç'}
+                          {selectedVideos.size === searchResults.length ? 'Hiçbirini Seçme' : 'Hepsini Seç'}
+                        </button>
+                        
+                        {selectedVideos.size > 0 && (
+                          <button
+                            onClick={() => {
+                              setPlaylistCreationType('selected');
+                              setShowCreatePlaylistModal(true);
+                            }}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Seçilenleri Liste Yap ({selectedVideos.size})</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  
+                  {isSelectionMode && (
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                      <p className="text-blue-200 text-sm">
+                        <strong>Seçim Modu:</strong> Oynatma listesi oluşturmak için videoları seçin. 
+                        {selectedVideos.size > 0 && ` ${selectedVideos.size} video seçildi.`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                    <VideoIcon className="w-6 h-6 mr-2 text-blue-400" />
+                    Arama Sonuçları ({searchResults.length})
+                  </h3>
+                  <VideoGrid
+                    videos={searchResults}
+                    onPlayVideo={setCurrentVideo}
+                    onAddToPlaylist={setPlaylistModalVideo}
+                    isSelectionMode={isSelectionMode}
+                    selectedVideos={selectedVideos}
+                    onToggleSelection={toggleVideoSelection}
+                  />
+                </div>
+              )}
+
+              {/* No Results */}
+              {searchQuery && searchResults.length === 0 && !isSearching && (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+                  <p className="text-gray-400 text-lg">"{searchQuery}" için sonuç bulunamadı</p>
+                  <p className="text-gray-500 text-sm mt-2">Farklı anahtar kelimeler deneyin</p>
+                </div>
+              )}
+
+              {/* Initial State */}
+              {!searchQuery && searchResults.length === 0 && (
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+                  <p className="text-gray-400 text-lg">Videolar arasında arama yapmak için yukarıdaki arama kutusunu kullanın</p>
+                  <p className="text-gray-500 text-sm mt-2">Video başlığı veya kanal adı ile arama yapabilirsiniz</p>
+                </div>
+              )}
+            </div>
+          ) : currentView === 'videolink' ? (
+            <VideoLinkInput
+              onPlayVideo={setCurrentVideo}
+              onAddToPlaylist={setPlaylistModalVideo}
+              onAddToPlaylistModal={setPlaylistModalVideo}
+            />
+          ) : currentView === 'videos' ? (
+            <>
+              <Breadcrumb path={currentPath} onNavigate={handleNavigate} />
+              
+              {/* Playlist Creation Buttons */}
+              {currentVideos.length > 0 && currentView === 'videos' && (
+                <div className="mb-6 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setPlaylistCreationType('all');
+                        setShowCreatePlaylistModal(true);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm"
+                    >
+                      <List className="w-4 h-4" />
+                      <span>Tüm Videoları Liste Yap ({currentVideos.length})</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        setIsSelectionMode(!isSelectionMode);
+                        setSelectedVideos(new Set());
+                      }}
+                      className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm ${
+                        isSelectionMode
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-600 hover:bg-gray-700 text-white'
+                      }`}
+                    >
+                      <VideoIcon className="w-4 h-4" />
+                      <span>{isSelectionMode ? 'Seçimi İptal Et' : 'Video Seç'}</span>
+                    </button>
+                    
+                    {isSelectionMode && (
+                      <>
+                        <button
+                          onClick={handleSelectAll}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                        >
+                          {selectedVideos.size === currentVideos.length ? 'Hiçbirini Seçme' : 'Hepsini Seç'}
                         </button>
                         
                         {selectedVideos.size > 0 && (
@@ -400,7 +572,7 @@ export default function App() {
                     </h2>
                   )}
                   <VideoGrid
-                    videos={filteredVideos}
+                    videos={currentVideos}
                     onPlayVideo={setCurrentVideo}
                     onAddToPlaylist={setPlaylistModalVideo}
                     isSelectionMode={isSelectionMode}
@@ -455,7 +627,7 @@ export default function App() {
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
               <h3 className="text-white text-lg font-semibold">
                 {playlistCreationType === 'all' 
-                  ? `Tüm Videoları Liste Yap (${filteredVideos.length})` 
+                  ? `Tüm Videoları Liste Yap (${currentView === 'search' ? searchResults.length : currentVideos.length})` 
                   : `Seçili Videoları Liste Yap (${selectedVideos.size})`
                 }
               </h3>
@@ -494,7 +666,7 @@ export default function App() {
                   <div className="bg-gray-700 p-3 rounded-lg">
                     <p className="text-gray-300 text-sm">
                       {playlistCreationType === 'all' 
-                        ? `${filteredVideos.length} video bu listeye eklenecek`
+                        ? `${currentView === 'search' ? searchResults.length : currentVideos.length} video bu listeye eklenecek`
                         : `${selectedVideos.size} seçili video bu listeye eklenecek`
                       }
                     </p>
