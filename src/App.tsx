@@ -14,6 +14,7 @@ import { YouTubeSearch } from './components/YouTubeSearch';
 import { VideoLinkInput } from './components/VideoLinkInput';
 import { AboutPage } from './components/AboutPage';
 import { Video, NavigationItem, Subgroup } from './types';
+import { searchMatch } from './utils/searchUtils';
 
 export default function App() {
   const { groups, loading, error } = useVideoData();
@@ -120,14 +121,13 @@ export default function App() {
     if (!query.trim()) return [];
     
     const allVideos: Video[] = [];
-    const searchTerm = query.toLowerCase();
     
     const collectVideos = (subgroups: any[]) => {
       subgroups.forEach(subgroup => {
         if (subgroup.videos) {
           subgroup.videos.forEach((video: Video) => {
-            if (video.snippet.title.toLowerCase().includes(searchTerm) ||
-                video.snippet.channelTitle.toLowerCase().includes(searchTerm)) {
+            if (searchMatch(query, video.snippet.title) ||
+                searchMatch(query, video.snippet.channelTitle)) {
               allVideos.push(video);
             }
           });
