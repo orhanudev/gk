@@ -44,13 +44,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [autoplay, setAutoplay] = useState(true);
   const [shuffleMode, setShuffleMode] = useState(false);
 
-  // Early return AFTER all hooks are declared
-  if (!playlist || !playlist.videos.length) return null;
-
-  const getVideoId = (video: Video): string => {
-    return video.id.videoId || String(video.id) || '';
-  };
-
   // Check for mobile screen size
   useEffect(() => {
     const checkMobile = () => {
@@ -84,13 +77,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     }
   }, [playlist, onUpdatePlaylist]);
 
-  const currentVideo = playlist.videos[currentVideoIndex];
-  
-  const currentVideoId = getVideoId(currentVideo);
-  
-  // Create embed URL with autoplay parameters
-  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
-
   // Keyboard event handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -109,7 +95,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   // Auto-advance to next video
   useEffect(() => {
-    if (!autoplay) return;
+    if (!autoplay || !playlist) return;
 
     const timer = setTimeout(() => {
       if (shuffleMode) {
@@ -131,7 +117,21 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     }, 5000); // Wait 5 seconds then auto-advance (simulating video end)
 
     return () => clearTimeout(timer);
-  }, [currentVideoIndex, autoplay, shuffleMode, playlist.videos.length]);
+  }, [currentVideoIndex, autoplay, shuffleMode, playlist]);
+
+  // Early return AFTER all hooks are declared
+  if (!playlist || !playlist.videos.length) return null;
+
+  const getVideoId = (video: Video): string => {
+    return video.id.videoId || String(video.id) || '';
+  };
+
+  const currentVideo = playlist.videos[currentVideoIndex];
+  
+  const currentVideoId = getVideoId(currentVideo);
+  
+  // Create embed URL with autoplay parameters
+  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
 
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
