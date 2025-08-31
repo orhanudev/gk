@@ -116,11 +116,35 @@ export function Navigation({
             // Always allow navigation to subgroups that have videos
             if (hasVideos) {
               // Find the actual subgroup object for navigation
-              const navItems: NavigationItem[] = [{
-                name: subgroup.viewName || subgroup.name,
-                path: fullPath,
-                subgroup: subgroup
-              }];
+              // Build the complete navigation path from root to this subgroup
+              const pathParts = fullPath.split('/');
+              const navItems: NavigationItem[] = [];
+              
+              // Add each level of the path
+              let currentPath = '';
+              pathParts.forEach((part, index) => {
+                currentPath = currentPath ? `${currentPath}/${part}` : part;
+                
+                if (index === 0) {
+                  // This is the group level
+                  const group = groups.find(g => g.name === part);
+                  if (group) {
+                    navItems.push({
+                      name: part,
+                      path: currentPath,
+                      group: group
+                    });
+                  }
+                } else {
+                  // This is a subgroup level - find the actual subgroup object
+                  navItems.push({
+                    name: subgroup.viewName || subgroup.name,
+                    path: currentPath,
+                    subgroup: subgroup
+                  });
+                }
+              });
+              
               onNavigate(navItems);
             }
           }}
@@ -187,7 +211,7 @@ export function Navigation({
         <button
           onClick={() => onNavigate([])}
           className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors ${
-            currentPath.length === 0
+            currentPath.length === 0 && !isSearchActive && !isPlaylistsActive && !isVideoLinkActive && !isYouTubeSearchActive && !isAboutActive
               ? 'bg-purple-600 text-white'
               : 'text-gray-300 hover:bg-gray-700'
           }`}
@@ -274,7 +298,11 @@ export function Navigation({
               >
                 {isExpanded ? <ChevronDown className="w-5 h-5 mr-2" /> : <ChevronRight className="w-5 h-5 mr-2" />}
                 {isExpanded ? <FolderOpen className="w-5 h-5 mr-2" /> : <Folder className="w-5 h-5 mr-2" />}
-                <span className="font-medium">{group.name}</span>
+                <span className={`font-medium ${
+                  currentPath.length > 0 && currentPath[0].name === group.name
+                    ? 'text-purple-300'
+                    : ''
+                }`}>{group.name}</span>
                 <span className="ml-auto text-xs text-gray-400">
                   {totalVideos}
                 </span>
