@@ -153,16 +153,16 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex z-50">
       {/* Playlist Sidebar */}
-      <div className={`bg-gray-800 ${isFullscreen ? 'hidden' : 'w-80 md:w-80'} ${isMobile ? 'w-72' : ''} h-full overflow-hidden flex flex-col border-r border-gray-700`}>
+      <div className={`bg-gray-800 ${isFullscreen ? 'hidden' : isMobile ? 'w-64' : 'w-80'} h-full overflow-hidden flex flex-col border-r border-gray-700`}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center">
             <List className="w-6 h-6 text-purple-400 mr-3" />
             <div>
-              <h2 className="text-white text-lg font-semibold">
+              <h2 className={`text-white font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}>
                 {playlist.name}
               </h2>
-              <p className="text-gray-400 text-sm">
+              <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                 {currentVideoIndex + 1} / {playlist.videos.length} video
               </p>
             </div>
@@ -177,7 +177,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
         </div>
 
         {/* Playlist Controls */}
-        <div className="p-4 border-b border-gray-700">
+        <div className={`border-b border-gray-700 ${isMobile ? 'p-2' : 'p-4'}`}>
           <div className="flex items-center justify-center space-x-4">
             <button
               onClick={handlePrevious}
@@ -187,9 +187,9 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
               <SkipBack className="w-5 h-5" />
             </button>
             
-            <div className="bg-purple-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2">
-              <Play className="w-5 h-5" />
-              <span>Oynatılıyor</span>
+            <div className={`bg-purple-600 text-white rounded-lg flex items-center space-x-2 ${isMobile ? 'px-3 py-2' : 'px-6 py-3'}`}>
+              <Play className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+              <span className={`${isMobile ? 'text-xs' : 'text-sm'}`}>Oynatılıyor</span>
             </div>
             
             <button
@@ -219,16 +219,16 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                 }`}
                 onClick={() => handleVideoSelect(index)}
               >
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                <div className={`flex items-start ${isMobile ? 'space-x-2' : 'space-x-3'}`}>
+                  <div className={`flex-shrink-0 bg-purple-600 rounded-full flex items-center justify-center text-white font-medium ${isMobile ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm'}`}>
                     {index + 1}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h5 className="text-white text-sm font-medium line-clamp-2 mb-1">
+                    <h5 className={`text-white font-medium line-clamp-2 mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       {video.snippet.title}
                     </h5>
-                    <p className="text-gray-400 text-xs">
+                    <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                       {video.snippet.channelTitle}
                     </p>
                   </div>
@@ -238,14 +238,14 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                       e.stopPropagation();
                       toggleWatched(videoId);
                     }}
-                    className={`flex-shrink-0 p-1 rounded transition-colors ${
+                    className={`flex-shrink-0 rounded transition-colors ${isMobile ? 'p-0.5' : 'p-1'} ${
                       isWatched
                         ? 'text-green-400 hover:text-green-300'
                         : 'text-gray-500 hover:text-gray-400'
                     }`}
                     title={isWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                   </button>
                 </div>
               </div>
@@ -271,13 +271,13 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
         </div>
 
         {/* Video Controls (Bottom Bar) */}
-        <div className="bg-gray-800 p-4 border-t border-gray-700">
+        <div className={`bg-gray-800 border-t border-gray-700 ${isMobile ? 'p-2' : 'p-4'}`}>
           <div className="flex items-center justify-between">
-            <div className="space-y-1 flex-1 min-w-0 mr-4">
-              <h3 className="text-white font-semibold line-clamp-1">
+            <div className={`space-y-1 flex-1 min-w-0 ${isMobile ? 'mr-2' : 'mr-4'}`}>
+              <h3 className={`text-white font-semibold line-clamp-1 ${isMobile ? 'text-sm' : 'text-base'}`}>
                 {currentVideo.snippet.title}
               </h3>
-              <div className="flex items-center space-x-4 text-gray-400 text-sm">
+              <div className={`flex items-center text-gray-400 ${isMobile ? 'space-x-2 text-xs' : 'space-x-4 text-sm'}`}>
                 <span>{currentVideo.snippet.channelTitle}</span>
                 {currentVideo.snippet.uploadDate && (
                   <span>
@@ -287,33 +287,33 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
               <button
                 onClick={() => toggleWatched(currentVideoId)}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'} ${
                   watchedVideos.has(currentVideoId)
                     ? 'bg-green-600 text-white'
                     : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
                 }`}
                 title={watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
               >
-                <Check className="w-4 h-4" />
+                <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
               </button>
               
               <button
                 onClick={toggleFullscreen}
-                className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                className={`bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
                 title={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
               >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                {isFullscreen ? <Minimize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> : <Maximize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />}
               </button>
 
               <button
                 onClick={onClose}
-                className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
+                className={`bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
                 title="Playlist'i Kapat"
               >
-                <X className="w-4 h-4" />
+                <X className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
               </button>
             </div>
           </div>
