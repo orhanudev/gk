@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronRight, ChevronDown, Home, Folder, FolderOpen, Search, Youtube, X, List } from 'lucide-react';
+import { ChevronRight, ChevronDown, Home, Folder, FolderOpen, Search, Youtube, X, List, Info } from 'lucide-react';
 import { Group, Subgroup, NavigationItem } from '../types';
 
 interface NavigationProps {
@@ -14,6 +14,8 @@ interface NavigationProps {
   isVideoLinkActive: boolean;
   onShowYouTubeSearch: () => void;
   isYouTubeSearchActive: boolean;
+  onShowAbout: () => void;
+  isAboutActive: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onClose?: () => void;
@@ -32,6 +34,8 @@ export function Navigation({
   isVideoLinkActive,
   onShowYouTubeSearch,
   isYouTubeSearchActive,
+  onShowAbout,
+  isAboutActive,
   searchQuery,
   onSearchChange,
   onClose,
@@ -155,6 +159,24 @@ export function Navigation({
               .map(sub => renderSubgroup(sub, fullPath, depth + 1))}
           </div>
         )}
+      </div>
+
+      {/* About Link at Bottom */}
+      <div className="mt-auto pt-4 border-t border-gray-700">
+        <button
+          onClick={() => {
+            onNavigate([]);
+            onShowAbout();
+          }}
+          className={`flex items-center w-full py-2 px-3 rounded-lg transition-colors ${
+            isAboutActive
+              ? 'bg-gray-700 text-white'
+              : 'text-gray-400 hover:bg-gray-700 hover:text-white'
+          }`}
+        >
+          <Info className="w-5 h-5 mr-3" />
+          <span className="font-medium">Hakkında</span>
+        </button>
       </div>
     );
   };

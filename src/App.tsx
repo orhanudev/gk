@@ -12,6 +12,7 @@ import { PlaylistManager } from './components/PlaylistManager';
 import { Breadcrumb } from './components/Breadcrumb';
 import { YouTubeSearch } from './components/YouTubeSearch';
 import { VideoLinkInput } from './components/VideoLinkInput';
+import { AboutPage } from './components/AboutPage';
 import { Video, NavigationItem, Subgroup } from './types';
 
 export default function App() {
@@ -33,7 +34,7 @@ export default function App() {
   const [playlistModalVideo, setPlaylistModalVideo] = useState<Video | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentView, setCurrentView] = useState<'videos' | 'playlists' | 'search' | 'videolink' | 'youtube-search'>('videos');
+  const [currentView, setCurrentView] = useState<'videos' | 'playlists' | 'search' | 'videolink' | 'youtube-search' | 'about'>('videos');
   const [isMobile, setIsMobile] = useState(false);
   const [selectedVideos, setSelectedVideos] = useState<Set<string>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -307,6 +308,8 @@ export default function App() {
             isVideoLinkActive={currentView === 'videolink'}
             onShowYouTubeSearch={() => setCurrentView('youtube-search')}
             isYouTubeSearchActive={currentView === 'youtube-search'}
+            onShowAbout={() => setCurrentView('about')}
+            isAboutActive={currentView === 'about'}
             searchQuery=""
             onSearchChange={() => {}}
             onClose={() => setSidebarOpen(false)}
@@ -543,6 +546,8 @@ export default function App() {
               onAddToPlaylistModal={setPlaylistModalVideo}
               onPlayVideo={setCurrentVideo}
             />
+          ) : currentView === 'about' ? (
+            <AboutPage />
           ) : currentView === 'videos' ? (
             <>
               <Breadcrumb path={currentPath} onNavigate={handleNavigate} />
