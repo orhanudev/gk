@@ -12,7 +12,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
     if (playlist) {
@@ -39,11 +38,9 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isFullscreen) {
-          setIsFullscreen(false);
-        } else {
-          onClose();
-        }
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
       }
     };
 
@@ -135,8 +132,9 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
     onUpdatePlaylist(updatedPlaylist);
   };
 
-  const handleClose = () => {
-    console.log('Closing playlist player');
+  const handleCloseClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onClose();
   };
 
@@ -158,7 +156,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={handleClose}
+            onClick={handleCloseClick}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
             title="Kapat"
           >
@@ -182,7 +180,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
             >
               <Play className="w-5 h-5" />
-              <span>{isPlaying ? 'Duraklat' : 'Oynat'}</span>
+              <span>Oynat</span>
             </button>
             
             <button
@@ -273,7 +271,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
               )}
             </button>
             <button
-              onClick={handleClose}
+              onClick={handleCloseClick}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
               title="Kapat"
             >
