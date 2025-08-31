@@ -54,11 +54,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
   if (!playlist || !playlist.videos.length) return null;
 
-  const handleClose = () => {
-    console.log('Close button clicked');
-    onClose();
-  };
-
   const getVideoId = (video: Video): string => {
     return video.id.videoId || video.id || '';
   };
@@ -161,10 +156,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={() => {
-              console.log('X button clicked');
-              onClose();
-            }}
+            onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
             title="Kapat"
           >
@@ -302,6 +294,14 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
                 title={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
+
+              <button
+                onClick={onClose}
+                className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
+                title="Playlist'i Kapat"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
