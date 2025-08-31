@@ -33,6 +33,13 @@ export function searchMatch(searchTerm: string, targetText: string): boolean {
   const normalizedSearch = normalizeSearchText(searchTerm.toLowerCase());
   const normalizedTarget = normalizeSearchText(targetText.toLowerCase());
   
+  // Debug logging
+  console.log('Search debug:', {
+    original: { search: searchTerm, target: targetText },
+    normalized: { search: normalizedSearch, target: normalizedTarget },
+    match: normalizedTarget.includes(normalizedSearch)
+  });
+  
   // Simple contains check after normalization
   return normalizedTarget.includes(normalizedSearch);
 }
