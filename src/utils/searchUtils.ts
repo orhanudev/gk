@@ -9,24 +9,21 @@ export function normalizeSearchText(text: string): string {
     'ç': 'c',
     'ğ': 'g',
     'ı': 'i',
-    'i': 'i',
     'ö': 'o',
     'ş': 's',
     'ü': 'u',
     'Ç': 'c',
     'Ğ': 'g',
     'İ': 'i',
-    'I': 'i',
     'Ö': 'o',
     'Ş': 's',
     'Ü': 'u'
   };
   
   // Replace Turkish characters with English equivalents
-  Object.keys(turkishToEnglish).forEach(turkishChar => {
-    const englishChar = turkishToEnglish[turkishChar];
-    normalized = normalized.replace(new RegExp(turkishChar, 'g'), englishChar);
-  });
+  for (const [turkishChar, englishChar] of Object.entries(turkishToEnglish)) {
+    normalized = normalized.split(turkishChar).join(englishChar);
+  }
   
   return normalized;
 }
