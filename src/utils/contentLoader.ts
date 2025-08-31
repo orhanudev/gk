@@ -53,6 +53,13 @@ async function loadContentManifest(): Promise<{folders: string[], files: string[
   return { folders: [], files: [] };
 }
 
+// Fallback: try to infer structure from accessible files
+async function inferStructureFromKnownFiles(): Promise<{folders: string[], files: string[]}> {
+  // Since we want no hardcoding, we'll return empty structure
+  // The system should rely on manifest or directory scanning
+  return { folders: [], files: [] };
+}
+
 // Try to scan directories by attempting to access index files
 async function scanForDirectories(): Promise<{folders: string[], files: string[]}> {
   const discoveredFolders: string[] = [];
