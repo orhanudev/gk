@@ -63,7 +63,7 @@ export function PlaylistManager({
 
   const handleImportPlaylist = (videos: VideoType[], title: string) => {
     if (onImportPlaylist) {
-      onImportPlaylist(videos, title);
+      onImportPlaylist(title, videos);
     } else {
       onCreatePlaylist(title, videos);
     }
