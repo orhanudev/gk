@@ -685,6 +685,7 @@ export default function App() {
         playlist={currentPlaylist}
         onClose={handleForceClosePlaylist}
         onUpdatePlaylist={handleUpdatePlaylist}
+        onAddToPlaylistModal={setPlaylistModalVideo}
       />
 
       {/* Playlist Modal */}

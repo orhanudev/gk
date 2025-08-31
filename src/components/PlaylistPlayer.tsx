@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, SkipBack, SkipForward, Check, List, Maximize2, Minimize2, Share2, Repeat, Shuffle } from 'lucide-react';
+import { X, Play, SkipBack, SkipForward, Check, List, Maximize2, Minimize2, Share2, Repeat, Shuffle, Plus } from 'lucide-react';
 import { Playlist, Video } from '../types';
 
 interface PlaylistPlayerProps {
   playlist: Playlist | null;
   onClose: () => void;
   onUpdatePlaylist: (playlist: Playlist) => void;
+  onAddToPlaylistModal?: (video: Video) => void;
 }
 
 const shareVideo = async (video: Video) => {
@@ -35,7 +36,7 @@ const shareVideo = async (video: Video) => {
   }
 };
 
-export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: PlaylistPlayerProps) {
+export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPlaylistModal }: PlaylistPlayerProps) {
   // ALL hooks must be declared first, before any conditional logic
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [watchedVideos, setWatchedVideos] = useState<Set<string>>(new Set());
@@ -452,6 +453,16 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
             
             <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              {onAddToPlaylistModal && (
+                <button
+                  onClick={() => onAddToPlaylistModal(currentVideo)}
+                  className={`bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
+                  title="Başka listeye ekle"
+                >
+                  <Plus className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+                </button>
+              )}
+              
               <button
                 onClick={() => toggleWatched(currentVideoId)}
                 className={`rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'} ${
