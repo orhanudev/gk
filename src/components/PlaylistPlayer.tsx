@@ -461,41 +461,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist, onAddToPla
                 >
                   <Plus className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                 </button>
-              )}
-              
-                  const newWatchedVideos = new Set(watchedVideos);
-                  if (newWatchedVideos.has(videoId)) {
-                    newWatchedVideos.delete(videoId);
-                  } else {
-                    newWatchedVideos.add(videoId);
-                  }
-                  setWatchedVideos(newWatchedVideos);
-                  
-                  const updatedPlaylist = {
-                    ...playlist,
-                    watchedVideos: newWatchedVideos,
-                    currentVideoIndex
-                  };
-                  onUpdatePlaylist(updatedPlaylist);
-                onClick={() => {
-                  if (currentVideoId) {
-                    toggleWatched(currentVideoId);
-                  }
-                }}
-                className={`rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'} ${
-                  currentVideoId && watchedVideos.has(currentVideoId)
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-600 hover:bg-gray-700 text-gray-300'
-                }`}
-                title={currentVideoId && watchedVideos.has(currentVideoId) ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
-              >
-                <Check className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-              </button>
-              
-              <button
-                onClick={toggleFullscreen}
-                className={`bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors ${isMobile ? 'p-1.5' : 'p-2'}`}
-                  handleToggleWatched();
+                title="Tam ekran"
               >
                 {isFullscreen ? <Minimize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} /> : <Maximize2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />}
               </button>
