@@ -179,6 +179,8 @@ export default function App() {
             onNavigate={handleNavigate}
             onShowSearch={() => setCurrentView('search')}
             isSearchActive={currentView === 'search'}
+            onShowPlaylists={() => setCurrentView('playlists')}
+            isPlaylistsActive={currentView === 'playlists'}
             onShowVideoLink={() => setCurrentView('videolink')}
             isVideoLinkActive={currentView === 'videolink'}
             onClose={() => setSidebarOpen(false)}
