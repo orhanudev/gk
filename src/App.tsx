@@ -223,17 +223,6 @@ export default function App() {
                 YT Link
               </button>
               
-              <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Video ara..."
-                  className="bg-gray-700 text-white pl-10 pr-4 py-2 rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none w-32 md:w-48 lg:w-64"
-                />
-              </div>
-              
               <div className="flex bg-gray-700 rounded-lg overflow-hidden text-xs md:text-sm">
                 <button
                   onClick={() => setCurrentView('videos')}
