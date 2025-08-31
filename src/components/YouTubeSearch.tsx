@@ -9,6 +9,7 @@ interface YouTubeSearchProps {
   onPlayVideo: (video: Video) => void;
 }
 
+export function YouTubeSearch({ onAddToPlaylistModal, onPlayVideo }: YouTubeSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { searchResults, loading, error, searchVideos } = useYouTubeSearch();
 
