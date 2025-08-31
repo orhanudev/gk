@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { List, Search, Play, Folder, Video as VideoIcon, Youtube, X, Plus } from 'lucide-react';
 import { useVideoData } from './hooks/useVideoData';
 import { usePlaylistData } from './hooks/usePlaylistData';
+import { useDeepLink } from './hooks/useDeepLink';
 import { Navigation } from './components/Navigation';
 import { VideoGrid } from './components/VideoGrid';
 import { SubgroupGrid } from './components/SubgroupGrid';
