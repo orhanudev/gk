@@ -155,7 +155,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
             </div>
           </div>
           <button
-            onClick={closePlaylist}
+            onClick={() => onClose()}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
             title="Kapat"
           >
@@ -243,39 +243,6 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
 
       {/* Video Player Area */}
       <div className={`flex-1 bg-black flex flex-col ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
-        {/* Video Player Header */}
-        <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
-          <div className="flex-1 min-w-0 mr-4">
-            <h2 className="text-white font-semibold text-lg line-clamp-2">
-              {currentVideo.snippet.title}
-            </h2>
-            <p className="text-gray-400 text-sm mt-1">
-              {currentVideo.snippet.channelTitle} • Video {currentVideoIndex + 1} / {playlist.videos.length}
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
-              title={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
-            >
-              {isFullscreen ? (
-                <Minimize2 className="w-5 h-5" />
-              ) : (
-                <Maximize2 className="w-5 h-5" />
-              )}
-            </button>
-            <button
-              onClick={closePlaylist}
-              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
-              title="Kapat"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
         {/* Video Player */}
         <div className="flex-1 bg-black relative">
           <iframe
