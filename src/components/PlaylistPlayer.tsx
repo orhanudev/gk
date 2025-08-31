@@ -248,8 +248,8 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
   const currentVideo = playlist.videos[currentVideoIndex];
   const currentVideoId = getVideoId(currentVideo);
   
-  // Create embed URL with autoplay parameters
-  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}&end=${Date.now()}`;
+  // Create embed URL with autoplay parameters - use currentVideoIndex as key to force reload
+  const embedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=1&enablejsapi=1&origin=${window.location.origin}`;
 
   return (
     <div className={`fixed inset-0 bg-black bg-opacity-90 z-50 ${
@@ -422,6 +422,7 @@ export function PlaylistPlayer({ playlist, onClose, onUpdatePlaylist }: Playlist
         {/* Video Player */}
         <div className="flex-1 bg-black relative">
           <iframe
+            key={`${currentVideoId}-${currentVideoIndex}`}
             width="100%"
             height="100%"
             src={embedUrl}
