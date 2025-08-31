@@ -47,7 +47,19 @@ export function SubgroupGrid({ subgroups, onNavigate, currentPath }: SubgroupGri
         Kategoriler
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {subgroups.map((subgroup) => {
+        {subgroups
+          .sort((a, b) => {
+            const aHasSubgroups = a.subgroups && a.subgroups.length > 0;
+            const bHasSubgroups = b.subgroups && b.subgroups.length > 0;
+            
+            // Folders first, then individual items
+            if (aHasSubgroups && !bHasSubgroups) return -1;
+            if (!aHasSubgroups && bHasSubgroups) return 1;
+            
+            // Within same type, sort alphabetically
+            return (a.viewName || a.name).localeCompare(b.viewName || b.name);
+          })
+          .map((subgroup) => {
           const videoCount = subgroup.totalVideos || getVideoCount(subgroup);
           const hasSubgroups = subgroup.subgroups && subgroup.subgroups.length > 0;
           const hasVideos = subgroup.videos && subgroup.videos.length > 0;

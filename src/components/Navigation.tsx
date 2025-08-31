@@ -86,7 +86,19 @@ export function Navigation({
         </div>
         {hasSubgroups && isExpanded && (
           <div className="ml-2">
-            {subgroup.subgroups!.map(sub => renderSubgroup(sub, fullPath, depth + 1))}
+            {subgroup.subgroups!
+              .sort((a, b) => {
+                const aHasSubgroups = a.subgroups && a.subgroups.length > 0;
+                const bHasSubgroups = b.subgroups && b.subgroups.length > 0;
+                
+                // Folders first, then individual items
+                if (aHasSubgroups && !bHasSubgroups) return -1;
+                if (!aHasSubgroups && bHasSubgroups) return 1;
+                
+                // Within same type, sort alphabetically
+                return (a.viewName || a.name).localeCompare(b.viewName || b.name);
+              })
+              .map(sub => renderSubgroup(sub, fullPath, depth + 1))}
           </div>
         )}
       </div>
@@ -172,7 +184,19 @@ export function Navigation({
               </div>
               {isExpanded && (
                 <div className="ml-2">
-                  {group.subgroups.map(subgroup => renderSubgroup(subgroup, group.name))}
+                  {group.subgroups
+                    .sort((a, b) => {
+                      const aHasSubgroups = a.subgroups && a.subgroups.length > 0;
+                      const bHasSubgroups = b.subgroups && b.subgroups.length > 0;
+                      
+                      // Folders first, then individual items
+                      if (aHasSubgroups && !bHasSubgroups) return -1;
+                      if (!aHasSubgroups && bHasSubgroups) return 1;
+                      
+                      // Within same type, sort alphabetically
+                      return (a.viewName || a.name).localeCompare(b.viewName || b.name);
+                    })
+                    .map(subgroup => renderSubgroup(subgroup, group.name))}
                 </div>
               )}
             </div>
