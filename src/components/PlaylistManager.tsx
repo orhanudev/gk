@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
-import { Play, Trash2, Plus, Video, Clock, Check, ChevronDown, ChevronRight, Download, Share2 } from 'lucide-react';
-import { Video as VideoType } from '../types';
-import { ImportPlaylistModal } from './ImportPlaylistModal';
+import React, { useState } from "react";
+import {
+  Play,
+  Trash2,
+  Plus,
+  Video,
+  Clock,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Share2,
+  Youtube,
+} from "lucide-react";
+import { Video as VideoType } from "../types";
+import { ImportPlaylistModal } from "./ImportPlaylistModal";
 
 interface Playlist {
   id: string;
@@ -24,33 +36,50 @@ interface PlaylistManagerProps {
 
 const shareVideo = async (video: VideoType, useGKLink: boolean = true) => {
   const videoId = video.id.videoId || String(video.id);
-  const videoUrl = useGKLink 
+  const videoUrl = useGKLink
     ? `${window.location.origin}?v=${videoId}`
     : `https://www.youtube.com/watch?v=${videoId}`;
-  
+
   const shareData = {
     title: video.snippet.title,
-    text: useGKLink 
+    text: useGKLink
       ? `${video.snippet.title} - GK'da izle`
       : `${video.snippet.title} - ${video.snippet.channelTitle}`,
-    url: videoUrl
+    url: videoUrl,
   };
 
   try {
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare(shareData)
+    ) {
       await navigator.share(shareData);
     } else {
       await navigator.clipboard.writeText(videoUrl);
-      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
+      alert(
+        useGKLink
+          ? "GK video linki panoya kopyalandı!"
+          : "YouTube video linki panoya kopyalandı!"
+      );
     }
   } catch (error) {
-    console.error('Error sharing:', error);
+    console.error("Error sharing:", error);
     try {
       await navigator.clipboard.writeText(videoUrl);
-      alert(useGKLink ? 'GK video linki panoya kopyalandı!' : 'YouTube video linki panoya kopyalandı!');
+      alert(
+        useGKLink
+          ? "GK video linki panoya kopyalandı!"
+          : "YouTube video linki panoya kopyalandı!"
+      );
     } catch (clipboardError) {
-      console.error('Clipboard error:', clipboardError);
-      prompt(useGKLink ? 'GK video linkini kopyalayın:' : 'YouTube video linkini kopyalayın:', videoUrl);
+      console.error("Clipboard error:", clipboardError);
+      prompt(
+        useGKLink
+          ? "GK video linkini kopyalayın:"
+          : "YouTube video linkini kopyalayın:",
+        videoUrl
+      );
     }
   }
 };
@@ -63,18 +92,20 @@ export function PlaylistManager({
   onAddVideoToPlaylist,
   onCreatePlaylist,
   onToggleWatched,
-  onImportPlaylist
+  onImportPlaylist,
 }: PlaylistManagerProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [expandedPlaylists, setExpandedPlaylists] = useState<Set<string>>(new Set());
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [expandedPlaylists, setExpandedPlaylists] = useState<Set<string>>(
+    new Set()
+  );
   const [showImportModal, setShowImportModal] = useState(false);
 
   const handleCreatePlaylist = (e: React.FormEvent) => {
     e.preventDefault();
     if (newPlaylistName.trim()) {
       onCreatePlaylist(newPlaylistName.trim());
-      setNewPlaylistName('');
+      setNewPlaylistName("");
       setShowCreateForm(false);
     }
   };
@@ -90,8 +121,10 @@ export function PlaylistManager({
   };
 
   const handlePlayVideo = (video: VideoType) => {
-    const videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId || video.id}`;
-    window.open(videoUrl, '_blank');
+    const videoUrl = `https://www.youtube.com/watch?v=${
+      video.id.videoId || video.id
+    }`;
+    window.open(videoUrl, "_blank");
   };
 
   const handleImportPlaylist = (videos: VideoType[], title: string) => {
@@ -149,7 +182,7 @@ export function PlaylistManager({
               type="button"
               onClick={() => {
                 setShowCreateForm(false);
-                setNewPlaylistName('');
+                setNewPlaylistName("");
               }}
               className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors"
             >
@@ -164,13 +197,18 @@ export function PlaylistManager({
           <div className="text-gray-400 mb-4">
             <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p className="text-lg">Henüz oynatma listeniz yok</p>
-            <p className="text-sm mt-2">Videolara tıklayarak oynatma listesi oluşturabilirsiniz</p>
+            <p className="text-sm mt-2">
+              Videolara tıklayarak oynatma listesi oluşturabilirsiniz
+            </p>
           </div>
         </div>
       ) : (
         <div className="grid gap-6">
           {playlists.map((playlist) => (
-            <div key={playlist.id} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div
+              key={playlist.id}
+              className="bg-gray-800 rounded-lg p-6 border border-gray-700"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <button
@@ -185,9 +223,12 @@ export function PlaylistManager({
                   </button>
                   <Play className="w-5 h-5 text-purple-400" />
                   <div>
-                    <h3 className="text-xl font-semibold text-white">{playlist.name}</h3>
+                    <h3 className="text-xl font-semibold text-white">
+                      {playlist.name}
+                    </h3>
                     <p className="text-gray-400 text-sm">
-                      {playlist.videos.length} video • {new Date(playlist.createdAt).toLocaleDateString('tr-TR')}
+                      {playlist.videos.length} video •{" "}
+                      {new Date(playlist.createdAt).toLocaleDateString("tr-TR")}
                     </p>
                   </div>
                 </div>
@@ -208,68 +249,84 @@ export function PlaylistManager({
                 </div>
               </div>
 
-              {playlist.videos.length > 0 && expandedPlaylists.has(playlist.id) && (
-                <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
-                  {playlist.videos.map((video, index) => {
-                    const videoId = video.id.videoId || String(video.id);
-                    const isVideoWatched = playlist.watchedVideos?.has(videoId);
-                    return (
-                      <div
-                        key={videoId}
-                        className="group flex items-center bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer"
-                        onClick={() => handlePlayVideo(video)}
-                      >
-                        <div className="flex items-center space-x-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-white text-sm font-medium line-clamp-2 group-hover:text-purple-300 transition-colors">
-                              {video.snippet.title}
-                            </h4>
-                            <p className="text-gray-400 text-xs mt-1 truncate">
-                              {video.snippet.channelTitle}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          {isVideoWatched && (
-                            <div className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
-                              <Check className="w-3 h-3 mr-1" />
-                              İzlendi
+              {playlist.videos.length > 0 &&
+                expandedPlaylists.has(playlist.id) && (
+                  <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+                    {playlist.videos.map((video, index) => {
+                      const videoId = video.id.videoId || String(video.id);
+                      const isVideoWatched =
+                        playlist.watchedVideos?.has(videoId);
+                      return (
+                        <div
+                          key={videoId}
+                          className="group flex items-center bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors cursor-pointer"
+                          onClick={() => onToggleWatched(playlist.id, videoId)}
+                        >
+                          <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                              {index + 1}
                             </div>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onToggleWatched(playlist.id, String(videoId));
-                            }}
-                            className={`p-1 rounded transition-colors ${
-                              isVideoWatched 
-                                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                                : 'bg-gray-600 hover:bg-gray-700 text-white'
-                            }`}
-                            title={isVideoWatched ? 'İzlenmedi olarak işaretle' : 'İzlendi olarak işaretle'}
-                          >
-                            <Check className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onRemoveFromPlaylist(playlist.id, String(videoId));
-                            }}
-                            className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors"
-                            title="Listeden kaldır"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-white text-sm font-medium line-clamp-2 group-hover:text-purple-300 transition-colors">
+                                {video.snippet.title}
+                              </h4>
+                              <p className="text-gray-400 text-xs mt-1 truncate">
+                                {video.snippet.channelTitle}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            {isVideoWatched && (
+                              <div className="bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center">
+                                <Check className="w-3 h-3 mr-1" />
+                                İzlendi
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePlayVideo(video);
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors"
+                              title="YouTube'da aç"
+                            >
+                              <Youtube className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleWatched(playlist.id, videoId);
+                              }}
+                              className={`p-1 rounded transition-colors ${
+                                isVideoWatched
+                                  ? "bg-green-600 hover:bg-green-700 text-white"
+                                  : "bg-gray-600 hover:bg-gray-700 text-white"
+                              }`}
+                              title={
+                                isVideoWatched
+                                  ? "İzlenmedi olarak işaretle"
+                                  : "İzlendi olarak işaretle"
+                              }
+                            >
+                              <Check className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveFromPlaylist(playlist.id, videoId);
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white p-1 rounded transition-colors"
+                              title="Listeden kaldır"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
             </div>
           ))}
         </div>
